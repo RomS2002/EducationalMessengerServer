@@ -1,106 +1,97 @@
 package ru.roms2002.messenger.server.entity;
 
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.io.Serializable;
-import java.util.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import ru.roms2002.messenger.server.utils.enums.RoleEnum;
 
 @Entity
 @Table(name = "user")
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserEntity implements UserDetails, Serializable {
 
-    public UserEntity(int id, String firstName, String password) {
-        this.id = id;
-        this.firstName = firstName;
-        this.password = password;
-    }
+	public UserEntity(int andinpanelId, String password, String regToken, String email,
+			RoleEnum role) {
 
-    @Id
-    private int id;
+		this.adminpanelId = andinpanelId;
+		this.password = password;
+		this.regToken = regToken;
+		this.email = email;
+		this.role = role;
+	}
 
-    @Column(name = "firstname")
-    private String firstName;
+	@Id
+	private int id;
 
-    @Column(name = "lastname")
-    private String lastName;
+	@Column(name = "adminpanel_id")
+	private int adminpanelId;
 
-    private String password;
+	private String password;
 
-    @Column(name = "wstoken")
-    private String wsToken;
+	@Column(name = "reg_token")
+	private String regToken;
 
-    private String jwt;
+//	@Column(name = "wstoken")
+//	private String wsToken;
 
-    @ManyToMany(fetch = FetchType.EAGER, mappedBy = "userEntities", cascade = CascadeType.ALL)
-    private Set<GroupEntity> groupSet = new HashSet<>();
+//	private String jwt;
 
-    @Column(name = "expiration_date")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date expiration_date;
+//	@ManyToMany(fetch = FetchType.EAGER, mappedBy = "userEntities", cascade = CascadeType.ALL)
+//	private Set<GroupEntity> groupSet = new HashSet<>();
 
-    @Column(name = "short_url")
-    private String shortUrl;
+	private String email;
 
-    @Column(name = "email")
-    private String mail;
+	@Column(name = "role")
+	@Enumerated(EnumType.STRING)
+	private RoleEnum role;
 
-    @Column(name = "account_non_expired")
-    private boolean accountNonExpired;
+	@Override
+	public Collection<? extends GrantedAuthority> getAuthorities() {
+		return new ArrayList<>();
+	}
 
-    @Column(name = "account_non_locked")
-    private boolean accountNonLocked;
+	@Override
+	public String getPassword() {
+		return password;
+	}
 
-    @Column(name = "credentials_non_expired")
-    private boolean credentialsNonExpired;
+	@Override
+	public String getUsername() {
+		return email;
+	}
 
-    @Column(name = "enabled")
-    private boolean enabled;
+	@Override
+	public boolean isAccountNonExpired() {
+		return true;
+	}
 
-    @Column(name = "role_id")
-    private int role;
+	@Override
+	public boolean isAccountNonLocked() {
+		return true;
+	}
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return new ArrayList<>();
-    }
+	@Override
+	public boolean isCredentialsNonExpired() {
+		return true;
+	}
 
-    @Override
-    public String getPassword() {
-        return password;
-    }
-
-    @Override
-    public String getUsername() {
-        return firstName;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return accountNonExpired;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return accountNonLocked;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return credentialsNonExpired;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return enabled;
-    }
+	@Override
+	public boolean isEnabled() {
+		return false;
+	}
 }

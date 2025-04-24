@@ -18,34 +18,51 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             
-            <column name="username" type="varchar(255)">
+            <column name="reg_token" type="char(16)">
                 <constraints nullable="false"/>
             </column>
             
-            <column name="reg_token" type="varchar(255)">
+            <column name="email" type="varchar(255)">
             	<constraints nullable="false"/>
             </column>
             
-            <column name="jwt" type="varchar(255)"/>
+            <!-- <column name="jwt" type="varchar(255)"/> -->
             <column name="expiration_date" type="datetime"/>
 
             <column name="password" type="varchar(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="wstoken" type="varchar(255)">
+            
+            <!-- <column name="wstoken" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column> -->
+            
+            <column name="role" type="varchar(64)">
                 <constraints nullable="false"/>
             </column>
-            <column name="role_id" type="int">
-                <constraints nullable="false"/>
+            
+            <column name="adminpanel_id" type="int">
+            	<constraints nullable="false"/>
             </column>
-            <column name="account_non_expired" type="boolean" defaultValueBoolean="false"/>
-            <column name="account_non_locked" type="boolean" defaultValueBoolean="false"/>
-            <column name="credentials_non_expired" type="boolean" defaultValueBoolean="false"/>
-            <column name="enabled" type="boolean" defaultValueBoolean="false"/>
         </createTable>
+        
+        <createIndex indexName="ind_user_regtoken" tableName="user">
+			<column name="reg_token" />
+		</createIndex>
+		
+		<createIndex indexName="ind_user_email" tableName="user">
+			<column name="email" />
+		</createIndex>
+        
+        <createIndex indexName="ind_user_adminpanelid" tableName="user">
+			<column name="adminpanel_id" />
+		</createIndex>
+        
         <rollback>
+            <dropIndex tableName="user" indexName="ind_user_regtoken"/>
+            <dropIndex tableName="user" indexName="ind_user_email"/>
+            <dropIndex tableName="user" indexName="ind_user_adminpanelid"/>
             <dropTable tableName="user"/>
         </rollback>
     </changeSet>
-
 </databaseChangeLog>

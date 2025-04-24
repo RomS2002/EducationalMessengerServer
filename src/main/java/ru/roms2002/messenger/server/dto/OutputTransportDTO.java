@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import ru.roms2002.messenger.server.utils.TransportActionEnum;
+import ru.roms2002.messenger.server.utils.enums.TransportActionEnum;
 
 @Getter
 @Setter

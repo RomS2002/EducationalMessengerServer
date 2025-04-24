@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:pro="http://www.liquibase.org/xml/ns/pro"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd
+         http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-3.8.xsd">
+
+    <changeSet id="createJoinTableUserChat" author="TMN">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="user_chat"/>
+            </not>
+        </preConditions>
+        <createTable tableName="user_chat">
+            <column name="chat_id" type="INT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_user_chat_table"/>
+            </column>
+            
+            <column name="user_id" type="INT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_user_chat_table"/>
+            </column>
+            
+            <column name="is_admin" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <addForeignKeyConstraint baseTableName="user_chat"
+                                 baseColumnNames="chat_id"
+                                 constraintName="fk_chat_join"
+                                 referencedTableName="chat"
+                                 referencedColumnNames="id"/>
+                                 
+        <addForeignKeyConstraint baseTableName="user_chat"
+                                 baseColumnNames="user_id"
+                                 constraintName="fk_user_join"
+                                 referencedTableName="user"
+                                 referencedColumnNames="id"/>
+        <rollback>
+            <dropTable tableName="user_chat"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

@@ -1,45 +1,53 @@
 package ru.roms2002.messenger.server.entity;
 
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import java.sql.Timestamp;
+
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.sql.Timestamp;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import ru.roms2002.messenger.server.utils.enums.MessageTypeEnum;
 
 @Entity
 @Table(name = "message")
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class MessageEntity {
 
-    public MessageEntity(int userId, int groupId, String type, String message) {
-        this.user_id = userId;
-        this.group_id = groupId;
-        this.type = type;
-        this.message = message;
-    }
+	public MessageEntity(int userId, int groupId, MessageTypeEnum type, String message) {
+		this.userId = userId;
+		this.chatId = groupId;
+		this.type = type;
+		this.message = message;
+	}
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private int id;
 
-    private String message;
+	private String message;
 
-    @Column(name = "msg_group_id")
-    private int group_id;
+	@Column(name = "chat_id")
+	private int chatId;
 
-    @Column(name = "msg_user_id")
-    private int user_id;
+	@Column(name = "user_id")
+	private int userId;
 
-    @Column(name = "type")
-    private String type;
+	@Column(name = "type")
+	@Enumerated(EnumType.STRING)
+	private MessageTypeEnum type;
 
-    @Column(name = "created_at")
-    @CreationTimestamp
-    private Timestamp createdAt;
+	@Column(name = "created_at")
+	@CreationTimestamp
+	private Timestamp createdAt;
 }

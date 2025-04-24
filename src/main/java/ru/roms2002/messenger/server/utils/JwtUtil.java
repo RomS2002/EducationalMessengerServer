@@ -17,11 +17,11 @@ public class JwtUtil implements Serializable {
 
     public static final long JWT_TOKEN_VALIDITY = 1000 * 3600 * 365;
 
-    public static final String JWT_TOKEN = "d95d7dc9-0d56-4ef3-8d03-263c23b5bce5";
+    public static final String JWT_SIGNING_KEY = "d95d7dc9-0d56-4ef3-8d03-263c23b5bce5";
 
     // retrieve username from jwt token
     public String getUserNameFromJwtToken(String token) {
-        return Jwts.parser().setSigningKey(JWT_TOKEN).parseClaimsJws(token).getBody().getSubject();
+        return Jwts.parser().setSigningKey(JWT_SIGNING_KEY).parseClaimsJws(token).getBody().getSubject();
     }
 
     // retrieve expiration date from jwt token
@@ -35,7 +35,7 @@ public class JwtUtil implements Serializable {
     }
 
     private Claims getAllClaimsFromToken(String token) {
-        return Jwts.parser().setSigningKey(JWT_TOKEN)
+        return Jwts.parser().setSigningKey(JWT_SIGNING_KEY)
                 .parseClaimsJws(token).getBody();
     }
 
@@ -59,7 +59,7 @@ public class JwtUtil implements Serializable {
         return Jwts.builder().setClaims(claims).setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY))
-                .signWith(SignatureAlgorithm.HS512, JWT_TOKEN).compact();
+                .signWith(SignatureAlgorithm.HS512, JWT_SIGNING_KEY).compact();
     }
 
     // validate token

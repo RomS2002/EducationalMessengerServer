@@ -1,12 +1,11 @@
 package ru.roms2002.messenger.server.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import ru.roms2002.messenger.server.dto.user.GroupDTO;
-
-import java.util.List;
 
 @Getter
 @Setter
@@ -14,13 +13,13 @@ import java.util.List;
 @NoArgsConstructor
 public class AuthUserDTO {
 
-    private int id;
+	@JsonProperty("reg_token")
+	private String regToken;
 
-    private String username;
+	private String email;
 
-    private String firstGroupUrl;
+	@JsonProperty("last_name")
+	private String lastName;
 
-    private String wsToken;
-
-    private List<GroupDTO> groups;
+	private String password;
 }

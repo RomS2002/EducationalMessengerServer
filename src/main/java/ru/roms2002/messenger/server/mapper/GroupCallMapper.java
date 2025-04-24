@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import ru.roms2002.messenger.server.dto.user.GroupCallDTO;
-import ru.roms2002.messenger.server.entity.GroupEntity;
+import ru.roms2002.messenger.server.entity.ChatEntity;
 import ru.roms2002.messenger.server.service.RoomCacheService;
 
 import java.util.List;
@@ -16,7 +16,7 @@ public class GroupCallMapper {
     @Autowired
     private RoomCacheService roomCacheService;
 
-    public GroupCallDTO toGroupCall(GroupEntity group) {
+    public GroupCallDTO toGroupCall(ChatEntity group) {
         List<String> keys = roomCacheService.getAllKeys();
         GroupCallDTO groupCallDTO = new GroupCallDTO();
         Optional<String> actualRoomKey =

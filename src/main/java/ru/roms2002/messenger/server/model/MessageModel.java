@@ -11,6 +11,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class MessageModel {
 
-    public String message;
+	private String message;
 
 }

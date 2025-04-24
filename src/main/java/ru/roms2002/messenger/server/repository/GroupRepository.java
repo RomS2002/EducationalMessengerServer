@@ -5,13 +5,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import ru.roms2002.messenger.server.entity.GroupEntity;
-import ru.roms2002.messenger.server.entity.GroupUser;
+import ru.roms2002.messenger.server.entity.ChatEntity;
+import ru.roms2002.messenger.server.entity.UserChat;
 
 import java.util.List;
 
 @Repository
-public interface GroupRepository extends JpaRepository<GroupEntity, Integer> {
+public interface GroupRepository extends JpaRepository<ChatEntity, Integer> {
 
     @Query(value = "SELECT g.id FROM chat_group g WHERE g.url = :url", nativeQuery = true)
     int findGroupByUrl(@Param(value = "url") String url);
@@ -20,7 +20,7 @@ public interface GroupRepository extends JpaRepository<GroupEntity, Integer> {
     String getGroupEntitiesBy(@Param(value = "url") String url);
 
     @Query(value = "SELECT * FROM chat_group g WHERE g.url = :url", nativeQuery = true)
-    GroupEntity getGroupByUrl(@Param(value = "url") String url);
+    ChatEntity getGroupByUrl(@Param(value = "url") String url);
 
     @Query(value = "SELECT g.url FROM chat_group g WHERE g.id = :id", nativeQuery = true)
     String getGroupUrlById(@Param(value = "id") Integer id);
