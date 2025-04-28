@@ -24,6 +24,8 @@
             </column>
             
             <column name="name" type="varchar(255)"/>
+            
+            <column name="created_at" type="timestamp"/>
         </createTable>
         
         <createIndex indexName="ind_chat_name" tableName="chat">

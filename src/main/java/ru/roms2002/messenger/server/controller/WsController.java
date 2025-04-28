@@ -1,32 +1,51 @@
 package ru.roms2002.messenger.server.controller;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.RestController;
+
+import ru.roms2002.messenger.server.dto.InputTransportDTO;
+import ru.roms2002.messenger.server.service.GroupService;
+import ru.roms2002.messenger.server.service.UserChatJoinService;
+import ru.roms2002.messenger.server.service.MessageService;
+import ru.roms2002.messenger.server.service.UserSeenMessageService;
+import ru.roms2002.messenger.server.utils.enums.TransportActionEnum;
 
 @RestController
 public class WsController {
 
-//    @Autowired
-//    private RoomCacheService roomCacheService;
-//
-//    private final Logger log = LoggerFactory.getLogger(WsController.class);
-//
-//    private final Map<String, ArrayList<Integer>> usersIndexedByRoomId = new HashMap<>();
-//
-//    @Autowired
-//    private GroupService groupService;
-//
-//    @Autowired
-//    private MessageService messageService;
-//
-//    @Autowired
-//    private SimpMessagingTemplate messagingTemplate;
-//
-//    @Autowired
-//    private GroupUserJoinService groupUserJoinService;
-//
-//    @Autowired
-//    private UserSeenMessageService seenMessageService;
-//
+//	@Autowired
+//	private RoomCacheService roomCacheService;
+
+	private final Logger log = LoggerFactory.getLogger(WsController.class);
+
+	private final Map<String, CopyOnWriteArrayList<Integer>> usersIndexedByRoomId = new ConcurrentHashMap<>();
+
+	@Autowired
+	private GroupService groupService;
+
+	@Autowired
+	private MessageService messageService;
+
+	@Autowired
+	private SimpMessagingTemplate messagingTemplate;
+
+	@Autowired
+	private UserChatJoinService groupUserJoinService;
+
+	@Autowired
+	private UserSeenMessageService seenMessageService;
+
 //    @GetMapping(value = "/room/ensure-room-exists/{groupUrl}")
 //    public Boolean ensureCallRoomExists(@PathVariable String groupUrl) {
 //        if (StringUtils.hasLength(groupUrl)) {
@@ -34,74 +53,83 @@ public class WsController {
 //        }
 //        return false;
 //    }
-//
-//    @MessageMapping("/message")
-//    public void mainChannel(InputTransportDTO dto, @Header("simpSessionId") String sessionId) {
-//        TransportActionEnum action = dto.getAction();
-//        switch (action) {
-//            case SEND_GROUP_MESSAGE:
-//                this.getAndSaveMessage(dto.getUserId(), dto.getGroupUrl(), dto.getMessage());
-//                break;
-////            case FETCH_GROUP_MESSAGES:
-////                if (!dto.getGroupUrl().equals("")) {
-////                    int groupId = groupService.findGroupByUrl(dto.getGroupUrl());
-////                    if (dto.getGroupUrl().equals("") || groupUserJoinService.checkIfUserIsAuthorizedInGroup(dto.getUserId(), groupId)) {
-////                        break;
-////                    }
-////                    OutputTransportDTO resMessages = new OutputTransportDTO();
-////                    if (dto.getMessageId() == -1) {
-////                        resMessages.setAction(TransportActionEnum.FETCH_GROUP_MESSAGES);
-////                    } else {
-////                        resMessages.setAction(TransportActionEnum.ADD_CHAT_HISTORY);
-////                    }
-////                    resMessages.setObject(messages);
-////                    this.messagingTemplate.convertAndSend("/topic/user/" + dto.getUserId(), resMessages);
-////                }
-////                break;
-//            case MARK_MESSAGE_AS_SEEN:
-//                if (!"".equals(dto.getGroupUrl())) {
-//                    int messageId = messageService.findLastMessageIdByGroupId(groupService.findGroupByUrl(dto.getGroupUrl()));
-//                    MessageUserEntity messageUserEntity = seenMessageService.findByMessageId(messageId, dto.getUserId());
-//                    if (messageUserEntity == null) break;
-//                    messageUserEntity.setSeen(true);
-//                    seenMessageService.saveMessageUserEntity(messageUserEntity);
-//                }
-//                break;
-//            case LEAVE_GROUP:
+
+	@MessageMapping("/message")
+	public void mainChannel(InputTransportDTO dto, @Header("simpSessionId") String sessionId) {
+		TransportActionEnum action = dto.getAction();
+		System.out.println((UserDetails) SecurityContextHolder.getContext().getAuthentication()
+				.getPrincipal());
+		switch (action) {
+		case SEND_GROUP_MESSAGE:
+			System.out.println("SEND_GROUP_MESSAGE, " + sessionId);
+			// this.getAndSaveMessage(dto.getUserId(), dto.getGroupUrl(), dto.getMessage());
+			break;
+//            case FETCH_GROUP_MESSAGES:
 //                if (!dto.getGroupUrl().equals("")) {
-//                    log.info("User id {} left group {}", dto.getUserId(), dto.getGroupUrl());
 //                    int groupId = groupService.findGroupByUrl(dto.getGroupUrl());
-//                    groupUserJoinService.removeUserFromConversation(dto.getUserId(), groupId);
-//
-//                    String groupName = groupService.getGroupName(dto.getGroupUrl());
-//                    LeaveGroupDTO leaveGroupDTO = new LeaveGroupDTO();
-//                    leaveGroupDTO.setGroupUrl(dto.getGroupUrl());
-//                    leaveGroupDTO.setGroupName(groupName);
-//                    OutputTransportDTO leaveResponse = new OutputTransportDTO();
-//                    leaveResponse.setAction(TransportActionEnum.LEAVE_GROUP);
-//                    leaveResponse.setObject(leaveGroupDTO);
-//                    this.messagingTemplate.convertAndSend("/topic/user/" + dto.getUserId(), leaveResponse);
-//                } else {
-//                    log.warn("User cannot left group because groupUrl is empty");
-//                }
-//                break;
-//            case CHECK_EXISTING_CALL:
-//                OutputTransportDTO outputTransportDTO = new OutputTransportDTO();
-//                for (String key : usersIndexedByRoomId.keySet()) {
-//                    if (key.contains(dto.getGroupUrl())) {
-//                        outputTransportDTO.setAction(TransportActionEnum.CALL_IN_PROGRESS);
-//                        this.messagingTemplate.convertAndSend("/topic/user/" + dto.getUserId(), outputTransportDTO);
+//                    if (dto.getGroupUrl().equals("") || groupUserJoinService.checkIfUserIsAuthorizedInGroup(dto.getUserId(), groupId)) {
 //                        break;
 //                    }
+//                    OutputTransportDTO resMessages = new OutputTransportDTO();
+//                    if (dto.getMessageId() == -1) {
+//                        resMessages.setAction(TransportActionEnum.FETCH_GROUP_MESSAGES);
+//                    } else {
+//                        resMessages.setAction(TransportActionEnum.ADD_CHAT_HISTORY);
+//                    }
+//                    resMessages.setObject(messages);
+//                    this.messagingTemplate.convertAndSend("/topic/user/" + dto.getUserId(), resMessages);
 //                }
-//                outputTransportDTO.setAction(TransportActionEnum.NO_CALL_IN_PROGRESS);
-//                this.messagingTemplate.convertAndSend("/topic/user/" + dto.getUserId(), outputTransportDTO);
 //                break;
-//            default:
-//                break;
-//        }
-//    }
+		case MARK_MESSAGE_AS_SEEN:
+//			if (!"".equals(dto.getGroupUrl())) {
+//				int messageId = messageService
+//						.findLastMessageIdByGroupId(groupService.findGroupByUrl(dto.getGroupUrl()));
+//				MessageUserEntity messageUserEntity = seenMessageService.findByMessageId(messageId,
+//						dto.getUserId());
+//				if (messageUserEntity == null)
+//					break;
+//				messageUserEntity.setSeen(true);
+//				seenMessageService.saveMessageUserEntity(messageUserEntity);
+//			}
+			break;
+		case LEAVE_GROUP:
+//			if (!dto.getGroupUrl().equals("")) {
+//				log.info("User id {} left group {}", dto.getUserId(), dto.getGroupUrl());
+//				int groupId = groupService.findGroupByUrl(dto.getGroupUrl());
+//				groupUserJoinService.removeUserFromConversation(dto.getUserId(), groupId);
 //
+//				String groupName = groupService.getGroupName(dto.getGroupUrl());
+//				LeaveGroupDTO leaveGroupDTO = new LeaveGroupDTO();
+//				leaveGroupDTO.setGroupUrl(dto.getGroupUrl());
+//				leaveGroupDTO.setGroupName(groupName);
+//				OutputTransportDTO leaveResponse = new OutputTransportDTO();
+//				leaveResponse.setAction(TransportActionEnum.LEAVE_GROUP);
+//				leaveResponse.setObject(leaveGroupDTO);
+//				this.messagingTemplate.convertAndSend("/topic/user/" + dto.getUserId(),
+//						leaveResponse);
+//			} else {
+//				log.warn("User cannot left group because groupUrl is empty");
+//			}
+			break;
+		case CHECK_EXISTING_CALL:
+//			OutputTransportDTO outputTransportDTO = new OutputTransportDTO();
+//			for (String key : usersIndexedByRoomId.keySet()) {
+//				if (key.contains(dto.getGroupUrl())) {
+//					outputTransportDTO.setAction(TransportActionEnum.CALL_IN_PROGRESS);
+//					this.messagingTemplate.convertAndSend("/topic/user/" + dto.getUserId(),
+//							outputTransportDTO);
+//					break;
+//				}
+//			}
+//			outputTransportDTO.setAction(TransportActionEnum.NO_CALL_IN_PROGRESS);
+//			this.messagingTemplate.convertAndSend("/topic/user/" + dto.getUserId(),
+//					outputTransportDTO);
+			break;
+		default:
+			break;
+		}
+	}
+
 //    @MessageMapping("/rtc/{roomUrl}")
 //    public void webRtcChannel(@DestinationVariable String roomUrl, RtcTransportDTO dto) {
 //        RtcActionEnum action = dto.getAction();

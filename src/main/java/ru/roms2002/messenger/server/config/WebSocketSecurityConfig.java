@@ -14,7 +14,7 @@ public class WebSocketSecurityConfig {
 	@Bean
 	AuthorizationManager<Message<?>> authorizationManager(
 			MessageMatcherDelegatingAuthorizationManager.Builder messages) {
-		messages.anyMessage().permitAll();
+		messages.anyMessage().authenticated();
 		return messages.build();
 	}
 }

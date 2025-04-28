@@ -1,17 +1,27 @@
 package ru.roms2002.messenger.server.service;
 
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import jakarta.servlet.http.Cookie;
 import ru.roms2002.messenger.server.dto.AuthUserDTO;
 import ru.roms2002.messenger.server.dto.UserDetailsDTO;
+import ru.roms2002.messenger.server.dto.UserInListDTO;
 import ru.roms2002.messenger.server.dto.token.CheckTokenDTO;
 import ru.roms2002.messenger.server.dto.token.TokenStatus;
+import ru.roms2002.messenger.server.entity.ChatEntity;
 import ru.roms2002.messenger.server.entity.UserEntity;
 import ru.roms2002.messenger.server.repository.UserRepository;
 import ru.roms2002.messenger.server.utils.JwtUtil;
@@ -34,10 +44,40 @@ public class UserService {
 	@Autowired
 	private JwtUtil jwtTokenUtil;
 
+	private Map<Integer, String> wsSessions = new ConcurrentHashMap<>();
+
+	@Autowired
+	private CustomUserDetailsService userDetailsService;
+
 //	@Autowired
-//	private GroupUserJoinService groupUserJoinService;
-//
-//	private Map<Integer, String> wsSessions = new HashMap<>();
+//	private UserChatJoinService groupUserJoinService;
+
+	public List<UserInListDTO> findUsers(String lastName) {
+		List<UserInListDTO> users = infoServerService.getUsersByLastName(lastName);
+		Iterator<UserInListDTO> it = users.iterator();
+		while (it.hasNext()) {
+			UserInListDTO user = it.next();
+			UserEntity userEntity = userRepository.findByAdminpanelId(user.getId());
+			if (userEntity == null)
+				it.remove();
+			else
+				userEntity.setId(userEntity.getId());
+		}
+		return users;
+	}
+
+	public UserDetailsDTO getUserInfo(int id) {
+		UserEntity user = userRepository.findById(id).get();
+		UserDetailsDTO userDetails = infoServerService.getUserDetailsById(user.getAdminpanelId());
+		userDetails.setEmail(user.getEmail());
+		return userDetails;
+	}
+
+	public Set<ChatEntity> getChatList() {
+		String username = SecurityContextHolder.getContext().getAuthentication().getName();
+		UserEntity user = findByEmail(username);
+		return user.getChats();
+	}
 
 	public RegisterUserStatus registerUser(AuthUserDTO userDto) {
 		try {
@@ -105,7 +145,11 @@ public class UserService {
 	}
 
 	public UserEntity findByEmail(String email) {
-		return userRepository.findByEmail(email).get(0);
+		List<UserEntity> tmp = userRepository.findByEmail(email);
+		if (!tmp.isEmpty()) {
+			return userRepository.findByEmail(email).get(0);
+		}
+		return null;
 	}
 
 	public Cookie generateJwtCookie(UserEntity user) {
@@ -120,13 +164,30 @@ public class UserService {
 		return jwtAuthToken;
 	}
 
-//	public Map<Integer, String> getWsSessions() {
-//		return wsSessions;
-//	}
-//
-//	public void setWsSessions(Map<Integer, String> wsSessions) {
-//		this.wsSessions = wsSessions;
-//	}
+	public Map<Integer, String> getWsSessions() {
+		return wsSessions;
+	}
+
+	public void setWsSessions(Map<Integer, String> wsSessions) {
+		this.wsSessions = wsSessions;
+	}
+
+	public void authenticateUser(String jwtToken) {
+		String username = jwtTokenUtil.getUserNameFromJwtToken(jwtToken);
+		try {
+			UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+			if (jwtTokenUtil.validateToken(jwtToken, userDetails)) {
+				UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+						userDetails, null, userDetails.getAuthorities());
+				SecurityContextHolder.getContext().setAuthentication(auth);
+				System.out.println(auth.isAuthenticated());
+				return;
+			}
+		} catch (UsernameNotFoundException e) {
+
+		}
+		SecurityContextHolder.clearContext();
+	}
 //
 //	public void deleteAll() {
 //		userRepository.deleteAll();
@@ -153,13 +214,7 @@ public class UserService {
 //		return toSend;
 //	}
 //
-//	public String findUsernameWithWsToken(String token) {
-//		return userRepository.getUsernameWithWsToken(token);
-//	}
 //
-//	public int findUserIdWithToken(String token) {
-//		return userRepository.getUserIdWithWsToken(token);
-//	}
 //
 //	public UserEntity findByNameOrEmail(String str0, String str1) {
 //		return userRepository.getUserByFirstNameOrMail(str0, str1);

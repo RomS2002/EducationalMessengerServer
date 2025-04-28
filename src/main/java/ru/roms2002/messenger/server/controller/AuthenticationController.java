@@ -7,26 +7,26 @@ import org.springframework.web.bind.annotation.RestController;
 @CrossOrigin(allowCredentials = "true", origins = "http://localhost:3000")
 public class AuthenticationController {
 
-//    private final Logger log = LoggerFactory.getLogger(AuthenticationController.class);
+//	private final Logger log = LoggerFactory.getLogger(AuthenticationController.class);
 //
-//    @Autowired
-//    private JwtUtil jwtTokenUtil;
+//	@Autowired
+//	private JwtUtil jwtTokenUtil;
 //
-//    @Autowired
-//    private CustomUserDetailsService userDetailsService;
+//	@Autowired
+//	private CustomUserDetailsService userDetailsService;
 //
-//    @Autowired
-//    private UserMapper userMapper;
+//	@Autowired
+//	private UserMapper userMapper;
 //
-//    @Autowired
-//    private UserService userService;
+//	@Autowired
+//	private UserService userService;
 //
-//    @Autowired
-//    private GroupService groupService;
+//	@Autowired
+//	private GroupService groupService;
 //
-//    @Autowired
-//    private GroupMapper groupMapper;
-//
+//	@Autowired
+//	private GroupMapper groupMapper;
+
 //    @PostMapping(value = "/auth")
 //    public AuthUserDTO2 createAuthenticationToken(@RequestBody JwtDTO authenticationRequest, HttpServletResponse response) throws Exception {
 //        authenticate(authenticationRequest.getUsername(), authenticationRequest.getPassword());
@@ -84,17 +84,17 @@ public class AuthenticationController {
 //        ChatEntity groupEntity = groupService.createGroup(user.getId(), groupDTO.getName());
 //        return groupMapper.toGroupDTO(groupEntity, user.getId());
 //    }
-//
-//    private UserEntity getUserEntity(HttpServletRequest request) {
-//        String username;
-//        String jwtToken;
-//        UserEntity user = new UserEntity();
-//        Cookie cookie = WebUtils.getCookie(request, StaticVariable.SECURE_COOKIE);
-//        if (cookie != null) {
-//            jwtToken = cookie.getValue();
-//            username = jwtTokenUtil.getUserNameFromJwtToken(jwtToken);
-//            user = userService.findByNameOrEmail(username, username);
-//        }
-//        return user;
-//    }
+
+//	private UserEntity getUserEntity(HttpServletRequest request) {
+//		String username;
+//		String jwtToken;
+//		UserEntity user = new UserEntity();
+//		Cookie cookie = WebUtils.getCookie(request, "JWT");
+//		if (cookie != null) {
+//			jwtToken = cookie.getValue();
+//			username = jwtTokenUtil.getUserNameFromJwtToken(jwtToken);
+//			user = userService.findByEmail(username);
+//		}
+//		return user;
 }
+//}

@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserChat implements Serializable {
+public class UserChatEntity implements Serializable {
 
 	@Id
 	private int chatId;
@@ -31,28 +31,13 @@ public class UserChat implements Serializable {
 	@ManyToOne
 	@MapsId("chatId")
 	@JoinColumn(name = "chat_id")
-	private ChatEntity groupUsers;
+	private ChatEntity chats;
 
 	@ManyToOne
 	@MapsId("userId")
 	@JoinColumn(name = "user_id")
-	private UserEntity userEntities;
+	private UserEntity users;
 
 	@Column(name = "admin")
 	private boolean isAdmin;
-
-//	@Override
-//	public int hashCode() {
-//		return Objects.hash(chatId, userId);
-//	}
-//
-//	@Override
-//	public boolean equals(Object obj) {
-//		if (this == obj)
-//			return true;
-//		if (obj == null || getClass() != obj.getClass())
-//			return false;
-//		UserChat groupRoleKey = (UserChat) obj;
-//		return chatId == groupRoleKey.chatId && userId == groupRoleKey.userId;
-//	}
 }

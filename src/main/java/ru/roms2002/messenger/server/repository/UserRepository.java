@@ -12,6 +12,8 @@ public interface UserRepository extends JpaRepository<UserEntity, Integer> {
 
 	List<UserEntity> findByEmail(String email);
 
+	UserEntity findByAdminpanelId(Integer id);
+
 //    UserEntity getUserByFirstNameOrMail(String firstName, String mail);
 //
 //    @Query(value = "SELECT u.firstname, u.lastname FROM user u WHERE u.id = :userId", nativeQuery = true)

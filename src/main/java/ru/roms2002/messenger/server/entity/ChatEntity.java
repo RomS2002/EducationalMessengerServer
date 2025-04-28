@@ -41,8 +41,6 @@ public class ChatEntity implements Serializable {
 	@Column(name = "name")
 	private String name;
 
-	private String url;
-
 	@Enumerated(value = EnumType.STRING)
 	private ChatTypeEnum type;
 
@@ -51,11 +49,11 @@ public class ChatEntity implements Serializable {
 	private Timestamp createdAt;
 
 	@ManyToMany(fetch = FetchType.LAZY)
-	@JoinTable(name = "group_user", joinColumns = @JoinColumn(name = "group_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
+	@JoinTable(name = "user_chat", joinColumns = @JoinColumn(name = "chat_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
 	@JsonIgnore
-	private Set<UserEntity> userEntities = new HashSet<>();
+	private Set<UserEntity> users = new HashSet<>();
 
-	@OneToMany(mappedBy = "groupUsers", fetch = FetchType.EAGER)
+	@OneToMany(mappedBy = "chatId")
 	@JsonIgnore
-	private Set<UserChat> groupUsers = new HashSet<>();
+	private Set<UserChatEntity> userChats = new HashSet<>();
 }

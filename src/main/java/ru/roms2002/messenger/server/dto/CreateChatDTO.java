@@ -4,20 +4,15 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.roms2002.messenger.server.utils.enums.ChatTypeEnum;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-public class LightUserDTO {
+@AllArgsConstructor
+public class CreateChatDTO {
 
-    public int id;
+	private String name;
 
-    public String firstName;
-
-    public String lastName;
-
-    private int groupRole;
-
-    private String wsToken;
+	private ChatTypeEnum type;
 }

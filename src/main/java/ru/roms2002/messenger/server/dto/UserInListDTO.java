@@ -9,9 +9,15 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateGroupDTO {
+public class UserInListDTO {
 
-    private Long id1;
+	private int id;
 
-    private Long id2;
+	private String name;
+
+	private String role;
+
+	private String department;
+
+	private String group;
 }

@@ -6,6 +6,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import ru.roms2002.messenger.server.entity.UserEntity;
+
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
@@ -14,15 +16,11 @@ public class CustomUserDetailsService implements UserDetailsService {
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-//		UserEntity user = userService.findByNameOrEmail(username, username);
-//		if (user == null) {
-//			throw new UsernameNotFoundException(username);
-//		}
-//		if (!user.isEnabled()) {
-//			throw new DisabledException("Account is not enabled");
-//		}
-//		return new org.springframework.security.core.userdetails.User(user.getUsername(),
-//				user.getPassword(), user.getAuthorities());
-		return null;
+		UserEntity user = userService.findByEmail(username);
+		if (user == null) {
+			throw new UsernameNotFoundException(username);
+		}
+		return new org.springframework.security.core.userdetails.User(user.getUsername(),
+				user.getPassword(), user.getAuthorities());
 	}
 }

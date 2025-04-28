@@ -1,13 +1,22 @@
 package ru.roms2002.messenger.server.controller;
 
+import java.util.List;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import ru.roms2002.messenger.server.dto.UserDetailsDTO;
+import ru.roms2002.messenger.server.dto.UserInListDTO;
+import ru.roms2002.messenger.server.entity.ChatEntity;
 import ru.roms2002.messenger.server.mapper.GroupMapper;
 import ru.roms2002.messenger.server.service.GroupService;
-import ru.roms2002.messenger.server.service.GroupUserJoinService;
 import ru.roms2002.messenger.server.service.UserService;
 import ru.roms2002.messenger.server.utils.JwtUtil;
 
@@ -25,11 +34,38 @@ public class ApiController {
 	@Autowired
 	private GroupMapper groupMapper;
 
-	@Autowired
-	private GroupUserJoinService groupUserJoinService;
+//	@Autowired
+//	private GroupUserJoinService groupUserJoinService;
 
 	@Autowired
 	private JwtUtil jwtUtil;
+
+	@GetMapping("/chat-list")
+	public Set<ChatEntity> test() {
+		return userService.getChatList();
+	}
+
+	@GetMapping("user-profile/{id}")
+	public UserDetailsDTO getUserInfo(@PathVariable Integer id) {
+		return userService.getUserInfo(id);
+	}
+
+	@GetMapping("my-profile")
+	public UserDetailsDTO getMyInfo() {
+		String username = SecurityContextHolder.getContext().getAuthentication().getName();
+		int id = userService.findByEmail(username).getId();
+		return userService.getUserInfo(id);
+	}
+
+	@GetMapping("/users")
+	public List<UserInListDTO> findUsers(@RequestParam("last-name") String lastName) {
+		return userService.findUsers(lastName);
+	}
+
+//	@PostMapping("/create-chat")
+//	public ResponseEntity<Void> createChat(@RequestBody ) {
+//		
+//	}
 
 //    @GetMapping(value = "/users/all/{groupUrl}")
 //    public List<GroupMemberDTO> fetchAllUsersNotInGroup(@PathVariable String groupUrl) {

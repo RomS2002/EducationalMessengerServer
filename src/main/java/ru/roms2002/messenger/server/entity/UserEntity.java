@@ -3,6 +3,8 @@ package ru.roms2002.messenger.server.entity;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,6 +14,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -46,13 +49,8 @@ public class UserEntity implements UserDetails, Serializable {
 	@Column(name = "reg_token")
 	private String regToken;
 
-//	@Column(name = "wstoken")
-//	private String wsToken;
-
-//	private String jwt;
-
-//	@ManyToMany(fetch = FetchType.EAGER, mappedBy = "userEntities", cascade = CascadeType.ALL)
-//	private Set<GroupEntity> groupSet = new HashSet<>();
+	@ManyToMany(mappedBy = "users")
+	private Set<ChatEntity> chats = new HashSet<>();
 
 	private String email;
 
@@ -92,6 +90,6 @@ public class UserEntity implements UserDetails, Serializable {
 
 	@Override
 	public boolean isEnabled() {
-		return false;
+		return true;
 	}
 }

@@ -1,15 +1,18 @@
 package ru.roms2002.messenger.server.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import ru.roms2002.messenger.server.repository.UserChatJoinRepository;
+
 @Service
-public class GroupUserJoinService {
+public class UserChatJoinService {
 
 //    private static final Logger log = LoggerFactory.getLogger(WsFileController.class);
-//
-//    @Autowired
-//    private GroupUserJoinRepository groupUserJoinRepository;
-//
+
+	@Autowired
+	private UserChatJoinRepository userChatJoinRepository;
+
 //    @Autowired
 //    private MessageService messageService;
 //
