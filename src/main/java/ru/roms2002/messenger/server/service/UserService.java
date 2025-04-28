@@ -61,7 +61,7 @@ public class UserService {
 			if (userEntity == null)
 				it.remove();
 			else
-				userEntity.setId(userEntity.getId());
+				user.setId(userEntity.getId());
 		}
 		return users;
 	}
