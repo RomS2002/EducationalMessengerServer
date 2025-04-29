@@ -62,6 +62,9 @@ public class UserService {
 			int id = findByEmail(username).getId();
 			int indexOfPoint = image.getOriginalFilename().lastIndexOf(".");
 			String ext = image.getOriginalFilename().substring(indexOfPoint);
+			if (!ext.equals(".jpg")) {
+				return false;
+			}
 			Path path = Paths.get("./uploads/avatar");
 			if (!Files.exists(path)) {
 				Files.createDirectories(path);

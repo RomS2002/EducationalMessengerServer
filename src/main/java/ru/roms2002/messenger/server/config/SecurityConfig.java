@@ -39,9 +39,10 @@ public class SecurityConfig {
 	@Bean
 	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http.cors(Customizer.withDefaults()).csrf(csrf -> csrf.disable())
-				.addFilterBefore(jwtFilter, BasicAuthenticationFilter.class).authorizeHttpRequests(
-						(requests) -> requests.requestMatchers("/auth", "/auth/register", "/error")
-								.permitAll().anyRequest().authenticated());
+				.addFilterBefore(jwtFilter, BasicAuthenticationFilter.class)
+				.authorizeHttpRequests((requests) -> requests
+						.requestMatchers("/auth", "/auth/register", "/error", "/uploads/**")
+						.permitAll().anyRequest().authenticated());
 		return http.build();
 	}
 
