@@ -6,11 +6,15 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import ru.roms2002.messenger.server.dto.UserDetailsDTO;
 import ru.roms2002.messenger.server.dto.UserInListDTO;
@@ -60,6 +64,12 @@ public class ApiController {
 	@GetMapping("/users")
 	public List<UserInListDTO> findUsers(@RequestParam("last-name") String lastName) {
 		return userService.findUsers(lastName);
+	}
+
+	@PostMapping("/upload-avatar")
+	public ResponseEntity<Void> uploadAvatar(@RequestParam MultipartFile image) {
+		return userService.uploadAvatar(image) ? new ResponseEntity<>(HttpStatus.OK)
+				: new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 	}
 
 //	@PostMapping("/create-chat")

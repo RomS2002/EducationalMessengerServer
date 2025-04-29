@@ -1,5 +1,8 @@
 package ru.roms2002.messenger.server.service;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -14,6 +17,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.servlet.http.Cookie;
 import ru.roms2002.messenger.server.dto.AuthUserDTO;
@@ -51,6 +55,25 @@ public class UserService {
 
 //	@Autowired
 //	private UserChatJoinService groupUserJoinService;
+
+	public boolean uploadAvatar(MultipartFile image) {
+		try {
+			String username = SecurityContextHolder.getContext().getAuthentication().getName();
+			int id = findByEmail(username).getId();
+			int indexOfPoint = image.getOriginalFilename().lastIndexOf(".");
+			String ext = image.getOriginalFilename().substring(indexOfPoint);
+			Path path = Paths.get("./uploads/avatar");
+			if (!Files.exists(path)) {
+				Files.createDirectories(path);
+			}
+			Path filepath = path.resolve(id + ext);
+			Files.write(filepath, image.getBytes());
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
 
 	public List<UserInListDTO> findUsers(String lastName) {
 		List<UserInListDTO> users = infoServerService.getUsersByLastName(lastName);
