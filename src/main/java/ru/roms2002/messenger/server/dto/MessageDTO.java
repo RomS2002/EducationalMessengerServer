@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.roms2002.messenger.server.utils.enums.MessageTypeEnum;
 
 @Getter
 @Setter
@@ -11,27 +12,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class MessageDTO {
 
-    private int id;
+	private MessageTypeEnum type;
 
-    private String type;
-
-    private String message;
-
-    private int userId;
-
-    private int groupId;
-
-    private String groupUrl;
-
-    private String sender;
-
-    private String time;
-
-    private String initials;
-
-    private String color;
-
-    private String fileUrl;
-
-    private boolean isMessageSeen;
+	private String message;
 }

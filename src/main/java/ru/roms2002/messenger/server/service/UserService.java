@@ -3,11 +3,12 @@ package ru.roms2002.messenger.server.service;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.servlet.http.Cookie;
 import ru.roms2002.messenger.server.dto.AuthUserDTO;
+import ru.roms2002.messenger.server.dto.ChatDTO;
 import ru.roms2002.messenger.server.dto.UserDetailsDTO;
 import ru.roms2002.messenger.server.dto.UserInListDTO;
 import ru.roms2002.messenger.server.dto.token.CheckTokenDTO;
@@ -29,6 +31,7 @@ import ru.roms2002.messenger.server.entity.ChatEntity;
 import ru.roms2002.messenger.server.entity.UserEntity;
 import ru.roms2002.messenger.server.repository.UserRepository;
 import ru.roms2002.messenger.server.utils.JwtUtil;
+import ru.roms2002.messenger.server.utils.enums.ChatTypeEnum;
 import ru.roms2002.messenger.server.utils.enums.LoginUserStatus;
 import ru.roms2002.messenger.server.utils.enums.RegisterUserStatus;
 import ru.roms2002.messenger.server.utils.enums.RoleEnum;
@@ -53,8 +56,21 @@ public class UserService {
 	@Autowired
 	private CustomUserDetailsService userDetailsService;
 
+	@Autowired
+	private ChatService chatService;
+
+	@Autowired
+	private MessageService messageService;
+
 //	@Autowired
 //	private UserChatJoinService groupUserJoinService;
+
+	public boolean haveChatWith(UserEntity curUser, UserEntity user) {
+		for (ChatEntity chat : curUser.getChats())
+			if (chat.getUsers().contains(user))
+				return true;
+		return false;
+	}
 
 	public boolean uploadAvatar(MultipartFile image) {
 		try {
@@ -94,15 +110,54 @@ public class UserService {
 
 	public UserDetailsDTO getUserInfo(int id) {
 		UserEntity user = userRepository.findById(id).get();
-		UserDetailsDTO userDetails = infoServerService.getUserDetailsById(user.getAdminpanelId());
+		UserDetailsDTO userDetails = infoServerService
+				.getUserDetailsByAdminpanelId(user.getAdminpanelId());
+		userDetails.setId(user.getId());
 		userDetails.setEmail(user.getEmail());
 		return userDetails;
 	}
 
-	public Set<ChatEntity> getChatList() {
+	public List<ChatDTO> getChatList() {
 		String username = SecurityContextHolder.getContext().getAuthentication().getName();
 		UserEntity user = findByEmail(username);
-		return user.getChats();
+
+		List<ChatDTO> resultList = new ArrayList<>();
+		for (ChatEntity chat : user.getChats()) {
+			ChatDTO chatDTO = new ChatDTO();
+			chatDTO.setId(chat.getId());
+			chatDTO.setType(chat.getType());
+			if (chat.getType() == ChatTypeEnum.SINGLE) {
+				UserEntity secondUser = chatService.getSecondUserInSingleChat(chat, user);
+				chatDTO.setName(infoServerService.getFullName(secondUser));
+			} else {
+				chatDTO.setName(chat.getName());
+			}
+			chatDTO.setLastMessage(messageService.getLastMessageInChat(chat.getId()));
+			resultList.add(chatDTO);
+		}
+
+		resultList.sort((chat1, chat2) -> {
+			Date date1 = null, date2 = null;
+
+			if (chat1.getLastMessage() == null && chat2.getLastMessage() == null) {
+				date1 = chatService.findById(chat1.getId()).getCreatedAt();
+				date2 = chatService.findById(chat2.getId()).getCreatedAt();
+			} else if (chat1.getLastMessage() == null) {
+				date1 = chatService.findById(chat1.getId()).getCreatedAt();
+				date2 = chat2.getLastMessage().getCreatedAt();
+			} else if (chat2.getLastMessage() == null) {
+				date1 = chat1.getLastMessage().getCreatedAt();
+				date2 = chatService.findById(chat2.getId()).getCreatedAt();
+			} else {
+				date1 = chat1.getLastMessage().getCreatedAt();
+				date2 = chat2.getLastMessage().getCreatedAt();
+			}
+
+			return date2.compareTo(date1);
+		});
+
+		return resultList;
+
 	}
 
 	public RegisterUserStatus registerUser(AuthUserDTO userDto) {
@@ -123,7 +178,8 @@ public class UserService {
 
 			int adminpanelID = infoServerService.getIdByToken(userDto.getRegToken());
 
-			UserDetailsDTO userDetails = infoServerService.getUserDetailsById(adminpanelID);
+			UserDetailsDTO userDetails = infoServerService
+					.getUserDetailsByAdminpanelId(adminpanelID);
 			RoleEnum role = (userDetails.getRole().equals("Студент")) ? RoleEnum.STUDENT
 					: RoleEnum.PROFESSOR;
 
@@ -155,7 +211,7 @@ public class UserService {
 				return LoginUserStatus.INCORRECT_PASSWORD;
 
 			UserDetailsDTO userDetails = infoServerService
-					.getUserDetailsById(user.getAdminpanelId());
+					.getUserDetailsByAdminpanelId(user.getAdminpanelId());
 
 			if (userDetails.getIsBlocked())
 				return LoginUserStatus.BLOCKED;
@@ -174,6 +230,14 @@ public class UserService {
 		List<UserEntity> tmp = userRepository.findByEmail(email);
 		if (!tmp.isEmpty()) {
 			return userRepository.findByEmail(email).get(0);
+		}
+		return null;
+	}
+
+	public UserEntity findById(int id) {
+		Optional<UserEntity> tmp = userRepository.findById(id);
+		if (!tmp.isEmpty()) {
+			return tmp.get();
 		}
 		return null;
 	}
@@ -214,6 +278,7 @@ public class UserService {
 		}
 		SecurityContextHolder.clearContext();
 	}
+
 //
 //	public void deleteAll() {
 //		userRepository.deleteAll();

@@ -1,7 +1,6 @@
 package ru.roms2002.messenger.server.controller;
 
 import java.util.List;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,15 +11,19 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import ru.roms2002.messenger.server.dto.ChatDTO;
 import ru.roms2002.messenger.server.dto.UserDetailsDTO;
 import ru.roms2002.messenger.server.dto.UserInListDTO;
 import ru.roms2002.messenger.server.entity.ChatEntity;
+import ru.roms2002.messenger.server.entity.UserEntity;
 import ru.roms2002.messenger.server.mapper.GroupMapper;
-import ru.roms2002.messenger.server.service.GroupService;
+import ru.roms2002.messenger.server.service.ChatService;
+import ru.roms2002.messenger.server.service.MessageService;
 import ru.roms2002.messenger.server.service.UserService;
 import ru.roms2002.messenger.server.utils.JwtUtil;
 
@@ -33,10 +36,13 @@ public class ApiController {
 	private UserService userService;
 
 	@Autowired
-	private GroupService groupService;
+	private ChatService chatService;
 
 	@Autowired
 	private GroupMapper groupMapper;
+
+	@Autowired
+	private MessageService messageService;
 
 //	@Autowired
 //	private GroupUserJoinService groupUserJoinService;
@@ -44,8 +50,13 @@ public class ApiController {
 	@Autowired
 	private JwtUtil jwtUtil;
 
-	@GetMapping("/chat-list")
-	public Set<ChatEntity> test() {
+	@GetMapping("/test")
+	public void test() {
+
+	}
+
+	@GetMapping("/chats")
+	public List<ChatDTO> getChats() {
 		return userService.getChatList();
 	}
 
@@ -70,6 +81,28 @@ public class ApiController {
 	public ResponseEntity<Void> uploadAvatar(@RequestParam MultipartFile image) {
 		return userService.uploadAvatar(image) ? new ResponseEntity<>(HttpStatus.OK)
 				: new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+	}
+
+//	@PostMapping("/chat/create-single")
+//	public String createSingleChat(@RequestBody Integer id, HttpServletResponse response) {
+//
+//		Integer result = chatService.createChatWith(id);
+//		if (result == null) {
+//			response.setStatus(403);
+//			return "Невозможно создать данный чат";
+//		}
+//		return result.toString();
+//	}
+
+	@PostMapping("/chat/create-group")
+	public ResponseEntity<Void> createGroupChat(@RequestBody String chatName) {
+
+		ChatEntity chat = chatService.createGroupChat(chatName);
+		String username = SecurityContextHolder.getContext().getAuthentication().getName();
+		UserEntity user = userService.findByEmail(username);
+		chatService.addUserInChat(user, chat);
+		chatService.makeUserAdminInChat(user.getId(), chat);
+		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
 //	@PostMapping("/create-chat")

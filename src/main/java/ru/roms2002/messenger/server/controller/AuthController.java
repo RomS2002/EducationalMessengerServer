@@ -81,4 +81,15 @@ public class AuthController {
 
 		return new ResponseEntity<>("OK", HttpStatus.OK);
 	}
+
+	@PostMapping(value = "/logout")
+	public ResponseEntity<?> fetchInformation(HttpServletResponse response) {
+		Cookie cookie = new Cookie("JWT", null);
+		cookie.setHttpOnly(true);
+		cookie.setSecure(false);
+		cookie.setPath("/");
+		cookie.setMaxAge(0);
+		response.addCookie(cookie);
+		return ResponseEntity.ok().build();
+	}
 }

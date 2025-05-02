@@ -1,24 +1,17 @@
 package ru.roms2002.messenger.server.repository;
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import ru.roms2002.messenger.server.entity.ChatEntity;
+import ru.roms2002.messenger.server.entity.UserEntity;
 
 @Repository
 public interface ChatRepository extends JpaRepository<ChatEntity, Integer> {
 
-	@Query(value = "SELECT g.id FROM chat_group g WHERE g.url = :url", nativeQuery = true)
-	int findGroupByUrl(@Param(value = "url") String url);
-
-	@Query(value = "SELECT g.name FROM chat_group g WHERE g.url = :url", nativeQuery = true)
-	String getGroupEntitiesBy(@Param(value = "url") String url);
-
-	@Query(value = "SELECT * FROM chat_group g WHERE g.url = :url", nativeQuery = true)
-	ChatEntity getGroupByUrl(@Param(value = "url") String url);
-
-	@Query(value = "SELECT g.url FROM chat_group g WHERE g.id = :id", nativeQuery = true)
-	String getGroupUrlById(@Param(value = "id") Integer id);
+	@Query("from ChatEntity where (id in (select chat.id from UserChatEntity where user = :user1)) and (id in (select chat.id from UserChatEntity where user = :user2)) and (type = 'SINGLE')")
+	Optional<ChatEntity> findChatBetween(UserEntity user1, UserEntity user2);
 }

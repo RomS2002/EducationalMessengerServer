@@ -20,16 +20,17 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import ru.roms2002.messenger.server.utils.enums.ChatTypeEnum;
 
 @Entity
 @Table(name = "chat")
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class ChatEntity implements Serializable {
@@ -48,12 +49,8 @@ public class ChatEntity implements Serializable {
 	@CreationTimestamp
 	private Timestamp createdAt;
 
-	@ManyToMany(fetch = FetchType.LAZY)
+	@ManyToMany(fetch = FetchType.EAGER)
 	@JoinTable(name = "user_chat", joinColumns = @JoinColumn(name = "chat_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
 	@JsonIgnore
 	private Set<UserEntity> users = new HashSet<>();
-
-	@OneToMany(mappedBy = "chatId")
-	@JsonIgnore
-	private Set<UserChatEntity> userChats = new HashSet<>();
 }

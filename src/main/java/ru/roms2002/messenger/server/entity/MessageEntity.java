@@ -4,6 +4,8 @@ import java.sql.Timestamp;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -11,22 +13,26 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import ru.roms2002.messenger.server.utils.enums.MessageTypeEnum;
 
 @Entity
 @Table(name = "message")
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class MessageEntity {
 
-	public MessageEntity(int userId, int groupId, MessageTypeEnum type, String message) {
-		this.userId = userId;
-		this.chatId = groupId;
+	public MessageEntity(UserEntity user, ChatEntity chat, MessageTypeEnum type, String message) {
+		this.user = user;
+		this.chat = chat;
 		this.type = type;
 		this.message = message;
 	}
@@ -37,11 +43,15 @@ public class MessageEntity {
 
 	private String message;
 
-	@Column(name = "chat_id")
-	private int chatId;
+	@ManyToOne
+	@JoinColumn(name = "chat_id")
+	@JsonIgnore
+	private ChatEntity chat;
 
-	@Column(name = "user_id")
-	private int userId;
+	@ManyToOne
+	@JoinColumn(name = "user_id")
+	@JsonIgnore
+	private UserEntity user;
 
 	@Column(name = "type")
 	@Enumerated(EnumType.STRING)

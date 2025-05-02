@@ -3,27 +3,33 @@ package ru.roms2002.messenger.server.entity;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import ru.roms2002.messenger.server.utils.enums.RoleEnum;
 
 @Entity
 @Table(name = "user")
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserEntity implements UserDetails, Serializable {
@@ -49,8 +55,9 @@ public class UserEntity implements UserDetails, Serializable {
 	@Column(name = "reg_token")
 	private String regToken;
 
-	@ManyToMany(mappedBy = "users")
-	private Set<ChatEntity> chats = new HashSet<>();
+	@ManyToMany(fetch = FetchType.EAGER, mappedBy = "users")
+	@JsonIgnore
+	private List<ChatEntity> chats = new CopyOnWriteArrayList<>();
 
 	private String email;
 
@@ -91,5 +98,22 @@ public class UserEntity implements UserDetails, Serializable {
 	@Override
 	public boolean isEnabled() {
 		return true;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(email);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		UserEntity other = (UserEntity) obj;
+		return Objects.equals(email, other.email);
 	}
 }

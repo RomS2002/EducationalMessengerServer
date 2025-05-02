@@ -3,9 +3,8 @@ package ru.roms2002.messenger.server.entity;
 import java.io.Serializable;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.IdClass;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
@@ -16,28 +15,24 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "user_chat")
-@IdClass(ChatRoleKey.class)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserChatEntity implements Serializable {
 
-	@Id
-	private int chatId;
-
-	@Id
-	private int userId;
+	@EmbeddedId
+	private UserChatKey id;
 
 	@ManyToOne
 	@MapsId("chatId")
 	@JoinColumn(name = "chat_id")
-	private ChatEntity chats;
+	private ChatEntity chat;
 
 	@ManyToOne
 	@MapsId("userId")
 	@JoinColumn(name = "user_id")
-	private UserEntity users;
+	private UserEntity user;
 
-	@Column(name = "admin")
+	@Column(name = "is_admin")
 	private boolean isAdmin;
 }

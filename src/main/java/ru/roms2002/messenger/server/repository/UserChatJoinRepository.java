@@ -5,13 +5,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import ru.roms2002.messenger.server.entity.ChatRoleKey;
+import ru.roms2002.messenger.server.entity.UserChatKey;
 import ru.roms2002.messenger.server.entity.UserChatEntity;
 
 import java.util.List;
 
 @Repository
-public interface UserChatJoinRepository extends JpaRepository<UserChatEntity, ChatRoleKey> {
+public interface UserChatJoinRepository extends JpaRepository<UserChatEntity, UserChatKey> {
 
     @Query(value = "SELECT * FROM group_user WHERE group_id=:groupId", nativeQuery = true)
     List<UserChatEntity> getAllByGroupId(@Param("groupId") int groupId);

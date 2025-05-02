@@ -22,7 +22,7 @@
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_user_chat_table"/>
             </column>
             
-            <column name="is_admin" type="boolean">
+            <column name="is_admin" type="boolean" defaultValue="false">
                 <constraints nullable="false"/>
             </column>
         </createTable>

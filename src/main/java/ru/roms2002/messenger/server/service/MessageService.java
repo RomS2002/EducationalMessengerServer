@@ -1,9 +1,77 @@
 package ru.roms2002.messenger.server.service;
 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import ru.roms2002.messenger.server.dto.MessageDTO;
+import ru.roms2002.messenger.server.entity.ChatEntity;
+import ru.roms2002.messenger.server.entity.MessageEntity;
+import ru.roms2002.messenger.server.entity.UserEntity;
+import ru.roms2002.messenger.server.repository.MessageRepository;
+import ru.roms2002.messenger.server.utils.enums.MessageTypeEnum;
 
 @Service
 public class MessageService {
+
+	@Autowired
+	private UserService userService;
+
+	@Autowired
+	private MessageRepository messageRepository;
+
+	@Autowired
+	private ChatService chatService;
+
+	public MessageEntity sendMessageInChat(MessageDTO message, String username, int chatId) {
+		UserEntity user = userService.findByEmail(username);
+		MessageEntity messageEntity = new MessageEntity();
+		ChatEntity chat = chatService.findById(chatId);
+		if (!chat.getUsers().contains(user)) {
+			return null;
+		}
+		messageEntity.setChat(chat);
+		messageEntity.setUser(user);
+		messageEntity.setType(message.getType());
+		if (message.getType() == MessageTypeEnum.TEXT)
+			messageEntity.setMessage(message.getMessage());
+		return messageRepository.save(messageEntity);
+	}
+
+	public MessageEntity sendMessageToUser(MessageDTO message, String username, int userId) {
+		UserEntity user = userService.findByEmail(username);
+		MessageEntity messageEntity = new MessageEntity();
+		UserEntity user2 = userService.findById(userId);
+
+		ChatEntity chat = chatService.findChatBetween(user, user2);
+		if (chat == null) {
+			chat = chatService.createChatWith(user, user2.getId());
+			if (chat == null)
+				return null;
+		}
+
+		messageEntity.setChat(chat);
+		messageEntity.setUser(user);
+		messageEntity.setType(message.getType());
+		if (message.getType() == MessageTypeEnum.TEXT)
+			messageEntity.setMessage(message.getMessage());
+		return messageRepository.save(messageEntity);
+	}
+
+	public List<MessageEntity> getLastMessagesInChat(int chatId, int page, int count) {
+		Pageable countMessages = PageRequest.of(page, count);
+		return messageRepository.findByChatId(chatId, countMessages);
+	}
+
+	public MessageEntity getLastMessageInChat(int chatId) {
+		List<MessageEntity> tmp = getLastMessagesInChat(chatId, 0, 1);
+		if (tmp.isEmpty())
+			return null;
+		return tmp.get(0);
+	}
 
 //	@Autowired
 //	private MessageRepository messageRepository;

@@ -15,7 +15,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ChatRoleKey implements Serializable {
+public class UserChatKey implements Serializable {
 
 	@Column(name = "chat_id")
 	private int chatId;
@@ -34,7 +34,7 @@ public class ChatRoleKey implements Serializable {
 			return true;
 		if (obj == null || getClass() != obj.getClass())
 			return false;
-		ChatRoleKey groupRoleKey = (ChatRoleKey) obj;
+		UserChatKey groupRoleKey = (UserChatKey) obj;
 		return chatId == groupRoleKey.chatId && userId == groupRoleKey.userId;
 	}
 }
