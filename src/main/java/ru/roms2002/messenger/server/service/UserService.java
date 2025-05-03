@@ -23,16 +23,19 @@ import org.springframework.web.multipart.MultipartFile;
 import jakarta.servlet.http.Cookie;
 import ru.roms2002.messenger.server.dto.AuthUserDTO;
 import ru.roms2002.messenger.server.dto.ChatDTO;
+import ru.roms2002.messenger.server.dto.LastMessageDTO;
 import ru.roms2002.messenger.server.dto.UserDetailsDTO;
 import ru.roms2002.messenger.server.dto.UserInListDTO;
 import ru.roms2002.messenger.server.dto.token.CheckTokenDTO;
 import ru.roms2002.messenger.server.dto.token.TokenStatus;
 import ru.roms2002.messenger.server.entity.ChatEntity;
+import ru.roms2002.messenger.server.entity.MessageEntity;
 import ru.roms2002.messenger.server.entity.UserEntity;
 import ru.roms2002.messenger.server.repository.UserRepository;
 import ru.roms2002.messenger.server.utils.JwtUtil;
 import ru.roms2002.messenger.server.utils.enums.ChatTypeEnum;
 import ru.roms2002.messenger.server.utils.enums.LoginUserStatus;
+import ru.roms2002.messenger.server.utils.enums.MessageTypeEnum;
 import ru.roms2002.messenger.server.utils.enums.RegisterUserStatus;
 import ru.roms2002.messenger.server.utils.enums.RoleEnum;
 
@@ -65,11 +68,23 @@ public class UserService {
 //	@Autowired
 //	private UserChatJoinService groupUserJoinService;
 
+	public UserEntity getCurrentUser() {
+		String username = SecurityContextHolder.getContext().getAuthentication().getName();
+		return findByEmail(username);
+	}
+
 	public boolean haveChatWith(UserEntity curUser, UserEntity user) {
+		ChatEntity chat = getChatWith(curUser, user);
+		if (chat == null)
+			return false;
+		return true;
+	}
+
+	public ChatEntity getChatWith(UserEntity curUser, UserEntity user) {
 		for (ChatEntity chat : curUser.getChats())
-			if (chat.getUsers().contains(user))
-				return true;
-		return false;
+			if (chat.getUsers().contains(user) && chat.getType() == ChatTypeEnum.SINGLE)
+				return chat;
+		return null;
 	}
 
 	public boolean uploadAvatar(MultipartFile image) {
@@ -132,7 +147,33 @@ public class UserService {
 			} else {
 				chatDTO.setName(chat.getName());
 			}
-			chatDTO.setLastMessage(messageService.getLastMessageInChat(chat.getId()));
+
+			MessageEntity message = messageService.getLastMessageInChat(chat.getId());
+			LastMessageDTO messageDto = new LastMessageDTO();
+			messageDto.setCreatedAt(message.getCreatedAt());
+			messageDto.setType(message.getType());
+			if (message.getType() == MessageTypeEnum.TEXT) {
+				messageDto.setText(message.getMessage());
+			} else {
+				messageDto.setText("Файл: " + message.getFile().getFilename());
+			}
+
+			// Заглушка
+			messageDto.setSeen(false);
+			chatDTO.setLastMessage(messageDto);
+
+			if (chatDTO.getLastMessage() != null) {
+				if (message.getUser().equals(user)) {
+					chatDTO.setMessageFrom("Вы:");
+				} else if (chatDTO.getType() == ChatTypeEnum.SINGLE) {
+					chatDTO.setMessageFrom("");
+				} else {
+					UserDetailsDTO userDetailsDTO = infoServerService
+							.getUserDetailsByAdminpanelId(message.getUser().getAdminpanelId());
+					chatDTO.setMessageFrom(userDetailsDTO.getFirstName() + ":");
+				}
+			}
+
 			resultList.add(chatDTO);
 		}
 

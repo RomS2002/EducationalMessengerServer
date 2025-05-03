@@ -3,6 +3,7 @@ package ru.roms2002.messenger.server.entity;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -64,6 +65,9 @@ public class UserEntity implements UserDetails, Serializable {
 	@Column(name = "role")
 	@Enumerated(EnumType.STRING)
 	private RoleEnum role;
+
+	@Column(name = "last_action_time")
+	private Date lastActionTime;
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {

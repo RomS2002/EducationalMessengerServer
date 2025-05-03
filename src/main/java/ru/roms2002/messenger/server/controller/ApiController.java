@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import ru.roms2002.messenger.server.dto.AddUserDTO;
 import ru.roms2002.messenger.server.dto.ChatDTO;
 import ru.roms2002.messenger.server.dto.UserDetailsDTO;
 import ru.roms2002.messenger.server.dto.UserInListDTO;
@@ -83,16 +84,13 @@ public class ApiController {
 				: new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 	}
 
-//	@PostMapping("/chat/create-single")
-//	public String createSingleChat(@RequestBody Integer id, HttpServletResponse response) {
-//
-//		Integer result = chatService.createChatWith(id);
-//		if (result == null) {
-//			response.setStatus(403);
-//			return "Невозможно создать данный чат";
-//		}
-//		return result.toString();
-//	}
+	@PostMapping("/chat/add-user")
+	public ResponseEntity<Void> addUserInChat(@RequestBody AddUserDTO addUserDTO) {
+		if (!chatService.addUserToChat(addUserDTO.getUserId(), addUserDTO.getChatId())) {
+			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+		}
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
 
 	@PostMapping("/chat/create-group")
 	public ResponseEntity<Void> createGroupChat(@RequestBody String chatName) {

@@ -10,30 +10,20 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import ru.roms2002.messenger.server.dto.MessageDTO;
-import ru.roms2002.messenger.server.dto.UserDetailsDTO;
-import ru.roms2002.messenger.server.dto.ws.MessagePayload;
+import ru.roms2002.messenger.server.dto.MessageSendDTO;
 import ru.roms2002.messenger.server.dto.ws.WebSocketDTO;
-import ru.roms2002.messenger.server.entity.ChatEntity;
 import ru.roms2002.messenger.server.entity.MessageEntity;
-import ru.roms2002.messenger.server.entity.UserEntity;
-import ru.roms2002.messenger.server.service.InfoServerService;
 import ru.roms2002.messenger.server.service.MessageService;
-import ru.roms2002.messenger.server.service.UserService;
-import ru.roms2002.messenger.server.utils.enums.ChatTypeEnum;
-import ru.roms2002.messenger.server.utils.enums.MessageTypeEnum;
+import ru.roms2002.messenger.server.service.WebSocketService;
 
 @RestController
 public class WsController {
 
 	@Autowired
-	private InfoServerService infoServerService;
-
-	@Autowired
-	private UserService userService;
-
-	@Autowired
 	private MessageService messageService;
+
+	@Autowired
+	private WebSocketService webSocketService;
 
 	@MessageMapping("/chat/{chatId}")
 	public WebSocketDTO operationWithChat(@Payload WebSocketDTO payload, Principal user,
@@ -41,13 +31,13 @@ public class WsController {
 		String operation = payload.getType();
 		switch (operation) {
 		case "sendMessage":
-			MessageDTO message = new ObjectMapper().convertValue(payload.getPayload(),
-					MessageDTO.class);
+			MessageSendDTO message = new ObjectMapper().convertValue(payload.getPayload(),
+					MessageSendDTO.class);
 			MessageEntity messageEntity = messageService.sendMessageInChat(message, user.getName(),
 					chatId);
 			if (messageEntity == null)
 				return null;
-			return sendMessage(messageEntity);
+			return webSocketService.sendMessage(messageEntity);
 
 		default:
 			return null;
@@ -60,41 +50,14 @@ public class WsController {
 		String operation = payload.getType();
 		switch (operation) {
 		case "sendMessage":
-			MessageDTO message = new ObjectMapper().convertValue(payload.getPayload(),
-					MessageDTO.class);
+			MessageSendDTO message = new ObjectMapper().convertValue(payload.getPayload(),
+					MessageSendDTO.class);
 			MessageEntity messageEntity = messageService.sendMessageToUser(message, user.getName(),
 					userId);
-			return sendMessage(messageEntity);
+			return webSocketService.sendMessage(messageEntity);
 
 		default:
 			return null;
 		}
-	}
-
-	private WebSocketDTO sendMessage(MessageEntity message) {
-		WebSocketDTO response = new WebSocketDTO();
-		response.setType("newMessage");
-		MessagePayload payload = new MessagePayload();
-		payload.setChatId(message.getChat().getId());
-		payload.setUserId(message.getUser().getId());
-		payload.setId(message.getId());
-		payload.setCreatedAt(message.getCreatedAt());
-		if (message.getType() == MessageTypeEnum.TEXT) {
-			payload.setMessage(message.getMessage());
-			payload.setType(message.getType());
-		}
-
-		ChatEntity chat = message.getChat();
-		if (chat.getType() == ChatTypeEnum.GROUP) {
-			payload.setChatName(chat.getName());
-		} else {
-			UserEntity user = message.getUser();
-			UserDetailsDTO userDetails = infoServerService
-					.getUserDetailsByAdminpanelId(user.getAdminpanelId());
-			payload.setChatName(userDetails.getFirstName() + " " + userDetails.getLastName());
-		}
-
-		response.setPayload(payload);
-		return response;
 	}
 }

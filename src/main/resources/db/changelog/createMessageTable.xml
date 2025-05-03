@@ -19,9 +19,7 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             
-            <column name="message" type="MEDIUMTEXT">
-                <constraints nullable="false"/>
-            </column>
+            <column name="message" type="MEDIUMTEXT"/>
             
             <column name="chat_id" type="INT">
                 <constraints nullable="false"/>

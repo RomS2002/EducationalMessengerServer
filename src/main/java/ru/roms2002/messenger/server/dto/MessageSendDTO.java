@@ -10,7 +10,7 @@ import ru.roms2002.messenger.server.utils.enums.MessageTypeEnum;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class MessageDTO {
+public class MessageSendDTO {
 
 	private MessageTypeEnum type;
 

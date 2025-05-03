@@ -1,14 +1,22 @@
 package ru.roms2002.messenger.server.service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
-import ru.roms2002.messenger.server.dto.MessageDTO;
+import ru.roms2002.messenger.server.dto.MessageSendDTO;
 import ru.roms2002.messenger.server.entity.ChatEntity;
+import ru.roms2002.messenger.server.entity.FileEntity;
 import ru.roms2002.messenger.server.entity.MessageEntity;
 import ru.roms2002.messenger.server.entity.UserEntity;
 import ru.roms2002.messenger.server.repository.MessageRepository;
@@ -26,7 +34,10 @@ public class MessageService {
 	@Autowired
 	private ChatService chatService;
 
-	public MessageEntity sendMessageInChat(MessageDTO message, String username, int chatId) {
+	@Autowired
+	private FileService fileService;
+
+	public MessageEntity sendMessageInChat(MessageSendDTO message, String username, int chatId) {
 		UserEntity user = userService.findByEmail(username);
 		MessageEntity messageEntity = new MessageEntity();
 		ChatEntity chat = chatService.findById(chatId);
@@ -41,7 +52,7 @@ public class MessageService {
 		return messageRepository.save(messageEntity);
 	}
 
-	public MessageEntity sendMessageToUser(MessageDTO message, String username, int userId) {
+	public MessageEntity sendMessageToUser(MessageSendDTO message, String username, int userId) {
 		UserEntity user = userService.findByEmail(username);
 		MessageEntity messageEntity = new MessageEntity();
 		UserEntity user2 = userService.findById(userId);
@@ -71,6 +82,78 @@ public class MessageService {
 		if (tmp.isEmpty())
 			return null;
 		return tmp.get(0);
+	}
+
+	public MessageEntity saveFileInSingleChat(Integer userId, MultipartFile file) {
+
+		UserEntity curUser = userService.getCurrentUser();
+		ChatEntity chat = userService.getChatWith(curUser, curUser);
+		if (chat == null)
+			chat = chatService.createChatWith(curUser, userId);
+		if (chat == null) {
+			return null;
+		}
+		return saveFileInChat(chat.getId(), file);
+	}
+
+	public MessageEntity saveFileInChat(int chatId, MultipartFile file) {
+		MessageEntity message = new MessageEntity();
+		message.setType(MessageTypeEnum.FILE);
+		message.setUser(userService.getCurrentUser());
+
+		ChatEntity chat = chatService.findById(chatId);
+		if (chat == null)
+			return null;
+		message.setChat(chat);
+
+		FileEntity fileEntity = new FileEntity();
+		fileEntity.setFilename(file.getOriginalFilename());
+		fileEntity.setMessage(message);
+		String url = "./uploads/" + chatId;
+		String filename = UUID.randomUUID().toString();
+		fileEntity.setUrl(url + "/" + filename);
+		if (!saveFileOnDisk(url, filename, file)) {
+			return null;
+		}
+		message.setFile(fileEntity);
+		fileEntity = fileService.save(fileEntity);
+
+		return fileService.save(fileEntity).getMessage();
+	}
+
+	private boolean saveFileOnDisk(String url, String filename, MultipartFile file) {
+		Path path = Paths.get(url);
+		if (!Files.exists(path)) {
+			try {
+				Files.createDirectories(path);
+			} catch (IOException e) {
+				return false;
+			}
+		}
+		Path filepath = path.resolve(filename);
+		try {
+			Files.write(filepath, file.getBytes());
+		} catch (IOException e) {
+			return false;
+		}
+		return true;
+	}
+
+	public FileEntity getFile(int messageId) {
+		Optional<MessageEntity> message = messageRepository.findById(messageId);
+		if (message.isEmpty())
+			return null;
+		FileEntity file = message.get().getFile();
+		return file;
+	}
+
+	public boolean checkRights(int messageId) {
+		Optional<MessageEntity> message = messageRepository.findById(messageId);
+		if (message.isEmpty())
+			return false;
+		ChatEntity chat = message.get().getChat();
+		UserEntity user = userService.getCurrentUser();
+		return chat.getUsers().contains(user);
 	}
 
 //	@Autowired

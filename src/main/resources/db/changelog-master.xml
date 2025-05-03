@@ -7,7 +7,6 @@
     <include file="/db/changelog/createChatTable.xml"/>
     <include file="/db/changelog/createJoinTableUserChat.xml"/>
     <include file="/db/changelog/createMessageTable.xml"/>
-    <!-- <include file="/db/changelog/createFileBlobTable.xml"/>
+    <include file="/db/changelog/createFileBlobTable.xml"/>
     <include file="/db/changelog/createJoinTableMessageUserSeen.xml"/>
-    <include file="/db/changelog/addTimestampOnGroupTable.xml"/> -->
 </databaseChangeLog>

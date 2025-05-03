@@ -1,21 +1,21 @@
 package ru.roms2002.messenger.server.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
-
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class WrapperMessageDTO {
+public class AddUserDTO {
 
-    private boolean isLastMessage;
+	@JsonProperty("user_id")
+	private int userId;
 
-    private String groupName;
-
-    private List<MessageSendDTO> messages;
+	@JsonProperty("chat_id")
+	private int chatId;
 }

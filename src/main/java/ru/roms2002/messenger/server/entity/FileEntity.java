@@ -1,13 +1,24 @@
 package ru.roms2002.messenger.server.entity;
 
-import jakarta.persistence.*;
+import java.sql.Timestamp;
+
+import org.hibernate.annotations.CreationTimestamp;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-
-import java.sql.Timestamp;
 
 @Entity
 @Table(name = "file_storage")
@@ -17,20 +28,20 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 public class FileEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int Id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private int Id;
 
-    @Column(name = "fk_message_id")
-    private int messageId;
+	@OneToOne(cascade = { CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.REMOVE })
+	@JoinColumn(name = "message_id")
+	@JsonIgnore
+	private MessageEntity message;
 
-    @Column(name = "filename")
-    private String filename;
+	private String filename;
 
-    @Column(name = "url")
-    private String url;
+	private String url;
 
-    @Column(name = "created_at")
-    @CreationTimestamp
-    private Timestamp createdAt;
+	@Column(name = "created_at")
+	@CreationTimestamp
+	private Timestamp createdAt;
 }

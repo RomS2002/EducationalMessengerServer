@@ -17,7 +17,7 @@
             <column name="id" type="int" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="fk_message_id" type="int">
+            <column name="message_id" type="int">
                 <constraints nullable="false"/>
             </column>
             <column name="url" type="varchar(255)">
@@ -31,7 +31,7 @@
             </column>
         </createTable>
         <addForeignKeyConstraint baseTableName="file_storage"
-                                 baseColumnNames="fk_message_id"
+                                 baseColumnNames="message_id"
                                  constraintName="fk_message_filename"
                                  referencedTableName="message"
                                  referencedColumnNames="id"/>

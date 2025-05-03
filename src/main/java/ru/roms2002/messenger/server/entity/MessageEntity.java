@@ -6,6 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,6 +16,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -52,6 +54,10 @@ public class MessageEntity {
 	@JoinColumn(name = "user_id")
 	@JsonIgnore
 	private UserEntity user;
+
+	@OneToOne(mappedBy = "message", cascade = { CascadeType.PERSIST, CascadeType.REFRESH })
+	@JsonIgnore
+	private FileEntity file;
 
 	@Column(name = "type")
 	@Enumerated(EnumType.STRING)
