@@ -1,5 +1,12 @@
-{"properties": [{
-  "name": "infoserver.url",
-  "type": "java.lang.String",
-  "description": "A description for 'infoserver.url'"
-}]}
+{"properties": [
+  {
+    "name": "infoserver.url",
+    "type": "java.lang.String",
+    "description": "A description for 'infoserver.url'"
+  },
+  {
+    "name": "infoserver.ip",
+    "type": "java.lang.String",
+    "description": "A description for 'infoserver.ip'"
+  }
+]}

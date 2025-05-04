@@ -1,6 +1,7 @@
 package ru.roms2002.messenger.server.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -12,7 +13,7 @@ public interface UserRepository extends JpaRepository<UserEntity, Integer> {
 
 	List<UserEntity> findByEmail(String email);
 
-	UserEntity findByAdminpanelId(Integer id);
+	Optional<UserEntity> findByAdminpanelId(Integer id);
 
 //    UserEntity getUserByFirstNameOrMail(String firstName, String mail);
 //

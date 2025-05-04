@@ -19,6 +19,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.socket.WebSocketSession;
 
 import jakarta.servlet.http.Cookie;
 import ru.roms2002.messenger.server.dto.AuthUserDTO;
@@ -54,7 +55,7 @@ public class UserService {
 	@Autowired
 	private JwtUtil jwtTokenUtil;
 
-	private Map<Integer, String> wsSessions = new ConcurrentHashMap<>();
+	private Map<String, List<WebSocketSession>> wsSessions = new ConcurrentHashMap<>();
 
 	@Autowired
 	private CustomUserDetailsService userDetailsService;
@@ -295,11 +296,11 @@ public class UserService {
 		return jwtAuthToken;
 	}
 
-	public Map<Integer, String> getWsSessions() {
+	public Map<String, List<WebSocketSession>> getWsSessions() {
 		return wsSessions;
 	}
 
-	public void setWsSessions(Map<Integer, String> wsSessions) {
+	public void setWsSessions(Map<String, List<WebSocketSession>> wsSessions) {
 		this.wsSessions = wsSessions;
 	}
 
@@ -318,6 +319,14 @@ public class UserService {
 
 		}
 		SecurityContextHolder.clearContext();
+	}
+
+	public UserEntity findByAdminpanelId(int id) {
+		Optional<UserEntity> tmp = userRepository.findByAdminpanelId(id);
+		if (!tmp.isEmpty()) {
+			return tmp.get();
+		}
+		return null;
 	}
 
 //
