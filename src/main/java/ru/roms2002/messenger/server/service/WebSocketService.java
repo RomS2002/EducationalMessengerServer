@@ -3,8 +3,10 @@ package ru.roms2002.messenger.server.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.SerializationUtils;
 
 import ru.roms2002.messenger.server.dto.UserDetailsDTO;
+import ru.roms2002.messenger.server.dto.ws.EditMessagePayload;
 import ru.roms2002.messenger.server.dto.ws.MessagePayload;
 import ru.roms2002.messenger.server.dto.ws.WebSocketDTO;
 import ru.roms2002.messenger.server.entity.ChatEntity;
@@ -20,7 +22,13 @@ public class WebSocketService {
 	private SimpMessagingTemplate messagingTemplate;
 
 	@Autowired
+	private UserService userService;
+
+	@Autowired
 	private InfoServerService infoServerService;
+
+	@Autowired
+	private WebSocketService webSocketService;
 
 	public WebSocketDTO sendMessage(MessageEntity message) {
 		WebSocketDTO response = new WebSocketDTO();
@@ -28,10 +36,13 @@ public class WebSocketService {
 		MessagePayload payload = new MessagePayload();
 		payload.setId(message.getId());
 		payload.setChatId(message.getChat().getId());
-		payload.setUserId(message.getUser().getId());
+
+		if (message.getType() != MessageTypeEnum.INFO)
+			payload.setUserId(message.getUser().getId());
+
 		payload.setCreatedAt(message.getCreatedAt());
 		payload.setType(message.getType());
-		if (message.getType() == MessageTypeEnum.TEXT) {
+		if (message.getType() != MessageTypeEnum.FILE) {
 			payload.setMessage(message.getMessage());
 		} else {
 			payload.setFilename(message.getFile().getFilename());
@@ -43,9 +54,11 @@ public class WebSocketService {
 			payload.setChatName(chat.getName());
 		} else {
 			UserEntity user = message.getUser();
-			UserDetailsDTO userDetails = infoServerService
-					.getUserDetailsByAdminpanelId(user.getAdminpanelId());
-			payload.setChatName(userDetails.getFirstName() + " " + userDetails.getLastName());
+			if (user != null) {
+				UserDetailsDTO userDetails = infoServerService
+						.getUserDetailsByAdminpanelId(user.getAdminpanelId());
+				payload.setChatName(userDetails.getFirstName() + " " + userDetails.getLastName());
+			}
 		}
 
 		response.setPayload(payload);
@@ -54,5 +67,36 @@ public class WebSocketService {
 
 	public void send(String destination, WebSocketDTO payload) {
 		messagingTemplate.convertAndSend(destination, payload);
+	}
+
+	public void sendToSender(WebSocketDTO payload, int userId) {
+		WebSocketDTO wsDto = SerializationUtils.clone(payload);
+		MessagePayload messagePayload = (MessagePayload) wsDto.getPayload();
+		UserEntity user = userService.findById(userId);
+		UserDetailsDTO userDetails = infoServerService
+				.getUserDetailsByAdminpanelId(user.getAdminpanelId());
+		messagePayload.setChatName(userDetails.getFirstName() + " " + userDetails.getLastName());
+		webSocketService.send("/topic/user/" + messagePayload.getUserId(), wsDto);
+	}
+
+	public WebSocketDTO sendReadNotification(Integer messageId) {
+		WebSocketDTO response = new WebSocketDTO();
+		response.setType("wasRead");
+		response.setPayload(messageId);
+		return response;
+	}
+
+	public WebSocketDTO sendEditedNotification(EditMessagePayload editMessagePayload) {
+		WebSocketDTO response = new WebSocketDTO();
+		response.setType("wasEdited");
+		response.setPayload(editMessagePayload);
+		return response;
+	}
+
+	public WebSocketDTO sendDeleteNotification(Integer delMessageId) {
+		WebSocketDTO response = new WebSocketDTO();
+		response.setType("wasDeleted");
+		response.setPayload(delMessageId);
+		return response;
 	}
 }

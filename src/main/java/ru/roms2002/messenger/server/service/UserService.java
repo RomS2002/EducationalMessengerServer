@@ -34,6 +34,7 @@ import ru.roms2002.messenger.server.entity.MessageEntity;
 import ru.roms2002.messenger.server.entity.UserEntity;
 import ru.roms2002.messenger.server.repository.UserRepository;
 import ru.roms2002.messenger.server.utils.JwtUtil;
+import ru.roms2002.messenger.server.utils.StaticVariable;
 import ru.roms2002.messenger.server.utils.enums.ChatTypeEnum;
 import ru.roms2002.messenger.server.utils.enums.LoginUserStatus;
 import ru.roms2002.messenger.server.utils.enums.MessageTypeEnum;
@@ -66,8 +67,8 @@ public class UserService {
 	@Autowired
 	private MessageService messageService;
 
-//	@Autowired
-//	private UserChatJoinService groupUserJoinService;
+	@Autowired
+	private MessageUserService messageUserService;
 
 	public UserEntity getCurrentUser() {
 		String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -115,11 +116,11 @@ public class UserService {
 		Iterator<UserInListDTO> it = users.iterator();
 		while (it.hasNext()) {
 			UserInListDTO user = it.next();
-			UserEntity userEntity = userRepository.findByAdminpanelId(user.getId());
-			if (userEntity == null)
+			Optional<UserEntity> userEntity = userRepository.findByAdminpanelId(user.getId());
+			if (userEntity.isEmpty())
 				it.remove();
 			else
-				user.setId(userEntity.getId());
+				user.setId(userEntity.get().getId());
 		}
 		return users;
 	}
@@ -130,6 +131,7 @@ public class UserService {
 				.getUserDetailsByAdminpanelId(user.getAdminpanelId());
 		userDetails.setId(user.getId());
 		userDetails.setEmail(user.getEmail());
+		userDetails.setOnline(checkOnline(user));
 		return userDetails;
 	}
 
@@ -145,23 +147,27 @@ public class UserService {
 			if (chat.getType() == ChatTypeEnum.SINGLE) {
 				UserEntity secondUser = chatService.getSecondUserInSingleChat(chat, user);
 				chatDTO.setName(infoServerService.getFullName(secondUser));
+				chatDTO.setUserType(secondUser.getRole());
 			} else {
 				chatDTO.setName(chat.getName());
 			}
 
 			MessageEntity message = messageService.getLastMessageInChat(chat.getId());
-			LastMessageDTO messageDto = new LastMessageDTO();
-			messageDto.setCreatedAt(message.getCreatedAt());
-			messageDto.setType(message.getType());
-			if (message.getType() == MessageTypeEnum.TEXT) {
-				messageDto.setText(message.getMessage());
-			} else {
-				messageDto.setText("Файл: " + message.getFile().getFilename());
-			}
+			if (message == null)
+				chatDTO.setLastMessage(null);
+			else {
+				LastMessageDTO lastMessageDto = new LastMessageDTO();
+				lastMessageDto.setCreatedAt(message.getCreatedAt());
+				lastMessageDto.setType(message.getType());
+				if (message.getType() == MessageTypeEnum.TEXT) {
+					lastMessageDto.setText(message.getMessage());
+				} else {
+					lastMessageDto.setText("Файл: " + message.getFile().getFilename());
+				}
 
-			// Заглушка
-			messageDto.setSeen(false);
-			chatDTO.setLastMessage(messageDto);
+				lastMessageDto.setSeen(messageUserService.isMessageSeen(message));
+				chatDTO.setLastMessage(lastMessageDto);
+			}
 
 			if (chatDTO.getLastMessage() != null) {
 				if (message.getUser().equals(user)) {
@@ -329,82 +335,18 @@ public class UserService {
 		return null;
 	}
 
-//
-//	public void deleteAll() {
-//		userRepository.deleteAll();
-//	}
-//
-//	public void flush() {
-//		userRepository.flush();
-//	}
-//
-//	public List<UserEntity> findAll() {
-//		return userRepository.findAll();
-//	}
-//
-//	@Transactional
-//	public void save(UserEntity userEntity) {
-//		userRepository.save(userEntity);
-//	}
-//
-//	public List<GroupMemberDTO> fetchAllUsers(int[] ids) {
-//		List<GroupMemberDTO> toSend = new ArrayList<>();
-//		List<UserEntity> list = userRepository.getAllUsersNotAlreadyInConversation(ids);
-//		list.forEach(user -> toSend.add(
-//				new GroupMemberDTO(user.getId(), user.getFirstName(), user.getLastName(), false)));
-//		return toSend;
-//	}
-//
-//
-//
-//	public UserEntity findByNameOrEmail(String str0, String str1) {
-//		return userRepository.getUserByFirstNameOrMail(str0, str1);
-//	}
-//
-//	public boolean checkIfUserIsAdmin(int userId, int groupIdToCheck) {
-//		ChatRoleKey id = new ChatRoleKey(groupIdToCheck, userId);
-//		Optional<UserChat> optional = groupUserJoinService.findById(id);
-//		if (optional.isPresent()) {
-//			UserChat groupUser = optional.get();
-//			return groupUser.getRole() == 1;
-//		}
-//		return false;
-//	}
-//
-//	public String createShortUrl(String firstName, String lastName) {
-//		StringBuilder sb = new StringBuilder();
-//		sb.append(firstName);
-//		sb.append(".");
-//		sb.append(Normalizer.normalize(lastName.toLowerCase(), Normalizer.Form.NFD));
-//		boolean isShortUrlAvailable = true;
-//		int counter = 0;
-//		while (isShortUrlAvailable) {
-//			sb.append(counter);
-//			if (userRepository.countAllByShortUrl(sb.toString()) == 0) {
-//				isShortUrlAvailable = false;
-//			}
-//			counter++;
-//		}
-//		return sb.toString();
-//	}
-//
-//	public String findUsernameById(int id) {
-//		return userRepository.getUsernameByUserId(id);
-//	}
-//
-//	public String findFirstNameById(int id) {
-//		return userRepository.getFirstNameByUserId(id);
-//	}
-//
-//	public UserEntity findById(int id) {
-//		return userRepository.findById(id).orElse(null);
-//	}
-//
-//	public String passwordEncoder(String str) {
-//		return passwordEncoder.encode(str);
-//	}
-//
-//	public boolean checkIfUserNameOrMailAlreadyUsed(String firstName, String mail) {
-//		return userRepository.countAllByFirstNameOrMail(firstName, mail) > 0;
-//	}
+	public UserEntity save(UserEntity user) {
+		return userRepository.save(user);
+	}
+
+	public void updateOnline(UserEntity user) {
+		user.setLastActionTime(new Date());
+		save(user);
+	}
+
+	public boolean checkOnline(UserEntity user) {
+		Date lastActionTime = user.getLastActionTime();
+		long timeDiff = new Date().getTime() - lastActionTime.getTime();
+		return timeDiff < StaticVariable.SECONDS_SAVE_ONLINE_STATUS * 1000;
+	}
 }

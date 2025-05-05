@@ -25,9 +25,7 @@
                 <constraints nullable="false"/>
             </column>
             
-            <column name="user_id" type="INT">
-                <constraints nullable="false"/>
-            </column>
+            <column name="user_id" type="INT"/>
             
             <column name="type" type="varchar(64)">
                 <constraints nullable="false"/>

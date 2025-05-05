@@ -1,18 +1,21 @@
 package ru.roms2002.messenger.server.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import ru.roms2002.messenger.server.utils.enums.TransportActionEnum;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class OutputTransportDTO {
+public class AddRemoveUserDTO {
 
-    private TransportActionEnum action;
+	@JsonProperty("user_id")
+	private int userId;
 
-    private Object object;
+	@JsonProperty("chat_id")
+	private int chatId;
 }

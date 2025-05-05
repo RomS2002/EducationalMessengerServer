@@ -40,4 +40,8 @@ public class UserDetailsDTO {
 	private Boolean isBlocked;
 
 	private String email;
+
+	private String faculty;
+
+	private boolean online;
 }

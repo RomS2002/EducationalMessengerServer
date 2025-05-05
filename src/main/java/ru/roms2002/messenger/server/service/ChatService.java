@@ -5,7 +5,9 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import ru.roms2002.messenger.server.dto.ws.WebSocketDTO;
 import ru.roms2002.messenger.server.entity.ChatEntity;
+import ru.roms2002.messenger.server.entity.MessageEntity;
 import ru.roms2002.messenger.server.entity.UserChatEntity;
 import ru.roms2002.messenger.server.entity.UserEntity;
 import ru.roms2002.messenger.server.repository.ChatRepository;
@@ -22,6 +24,18 @@ public class ChatService {
 
 	@Autowired
 	private UserChatJoinService userChatService;
+
+	@Autowired
+	private MessageUserService messageUserService;
+
+	@Autowired
+	private MessageService messageService;
+
+	@Autowired
+	private InfoServerService infoServerService;
+
+	@Autowired
+	private WebSocketService webSocketService;
 
 	public ChatEntity createChatWith(UserEntity curUser, Integer userId) {
 		ChatEntity chatEntity = new ChatEntity();
@@ -46,18 +60,6 @@ public class ChatService {
 		chatEntity.setName(chatName);
 		chatEntity = chatRepository.save(chatEntity);
 		return chatEntity;
-	}
-
-	public void addUserInChat(UserEntity user, ChatEntity chat) {
-		if (chat.getType() != ChatTypeEnum.GROUP) {
-			return;
-		}
-		if (chat.getUsers().contains(user)) {
-			return;
-		}
-
-		chat.getUsers().add(user);
-		chatRepository.save(chat);
 	}
 
 	public void makeUserAdminInChat(int userId, ChatEntity chat) {
@@ -88,7 +90,7 @@ public class ChatService {
 		return null;
 	}
 
-	public boolean addUserToChat(int userId, int chatId) {
+	public boolean addUserToChat(int userId, int chatId, boolean automated) {
 		ChatEntity chat = chatRepository.findById(chatId).get();
 		UserEntity user = userService.findById(userId);
 		if (chat == null || user == null) {
@@ -97,9 +99,53 @@ public class ChatService {
 		if (chat.getUsers().contains(user)) {
 			return false;
 		}
+		if (chat.getType() == ChatTypeEnum.SINGLE)
+			return false;
+
+		UserEntity curUser = userService.getCurrentUser();
+		if (!automated && !(chat.getUsers().contains(curUser)
+				&& userChatService.findUserChat(curUser.getId(), chatId).isAdmin()))
+			return false;
+
 		chat.getUsers().add(user);
 		user.getChats().add(chat);
 		chatRepository.save(chat);
+		messageUserService.onNewUserInChat(user, chat);
+
+		String fullName = infoServerService.getFullName(user);
+		MessageEntity infoMessage = messageService
+				.sendInfoMessage("Пользователь " + fullName + " был добавлен в чат", chat);
+		WebSocketDTO wsDto = webSocketService.sendMessage(infoMessage);
+		webSocketService.send("/topic/chat/" + chatId, wsDto);
+		return true;
+	}
+
+	public boolean removeUserFromChat(int userId, int chatId, boolean automated) {
+		Optional<ChatEntity> tmp = chatRepository.findById(chatId);
+		UserEntity user = userService.findById(userId);
+		if (tmp.isEmpty() || user == null)
+			return false;
+
+		ChatEntity chat = tmp.get();
+		if (!chat.getUsers().contains(user))
+			return false;
+		if (chat.getType() == ChatTypeEnum.SINGLE)
+			return false;
+
+		UserEntity curUser = userService.getCurrentUser();
+		if (!automated && !(chat.getUsers().contains(curUser)
+				&& userChatService.findUserChat(curUser.getId(), chatId).isAdmin()))
+			return false;
+
+		chat.getUsers().remove(user);
+		user.getChats().remove(chat);
+		chat = chatRepository.save(chat);
+
+		String fullName = infoServerService.getFullName(user);
+		MessageEntity infoMessage = messageService
+				.sendInfoMessage("Пользователь " + fullName + " был удалён из чата", chat);
+		WebSocketDTO wsDto = webSocketService.sendMessage(infoMessage);
+		webSocketService.send("/topic/chat/" + chatId, wsDto);
 		return true;
 	}
 }

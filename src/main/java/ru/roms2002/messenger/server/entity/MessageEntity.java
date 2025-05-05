@@ -1,6 +1,7 @@
 package ru.roms2002.messenger.server.entity;
 
 import java.sql.Timestamp;
+import java.util.Set;
 
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -16,6 +17,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -66,4 +68,8 @@ public class MessageEntity {
 	@Column(name = "created_at")
 	@CreationTimestamp
 	private Timestamp createdAt;
+
+	@OneToMany(mappedBy = "message", cascade = CascadeType.ALL)
+	@JsonIgnore
+	private Set<MessageUserEntity> messageUsers;
 }

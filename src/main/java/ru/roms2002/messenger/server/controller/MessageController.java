@@ -58,6 +58,7 @@ public class MessageController {
 		}
 		WebSocketDTO wsDTO = webSocketService.sendMessage(message);
 		webSocketService.send("/topic/user/" + userId, wsDTO);
+		webSocketService.sendToSender(wsDTO, userId);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
@@ -82,15 +83,4 @@ public class MessageController {
 		return ResponseEntity.ok().headers(headers).contentLength(filePath.toFile().length())
 				.contentType(MediaType.APPLICATION_OCTET_STREAM).body(result);
 	}
-
-//    private final Logger log = LoggerFactory.getLogger(MessageController.class);
-//
-//    @Autowired
-//    private MessageService messageService;
-//
-//    @GetMapping(value = "/group/{groupUrl}")
-//    public WrapperMessageDTO fetchGroupMessages(@PathVariable String groupUrl) {
-//        this.log.debug("Fetching messages from conversation");
-//        return this.messageService.getConversationMessage(groupUrl, -1);
-//    }
 }

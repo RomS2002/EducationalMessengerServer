@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import ru.roms2002.messenger.server.service.MessageService;
-import ru.roms2002.messenger.server.service.UserSeenMessageService;
+import ru.roms2002.messenger.server.service.MessageUserService;
 import ru.roms2002.messenger.server.service.UserService;
 
 @Service
@@ -14,7 +14,7 @@ public class GroupMapper {
 	private MessageService messageService;
 
 	@Autowired
-	private UserSeenMessageService seenMessageService;
+	private MessageUserService seenMessageService;
 
 	@Autowired
 	private UserService userService;

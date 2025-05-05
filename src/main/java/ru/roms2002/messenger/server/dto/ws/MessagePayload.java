@@ -1,5 +1,6 @@
 package ru.roms2002.messenger.server.dto.ws;
 
+import java.io.Serializable;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -19,7 +20,7 @@ import ru.roms2002.messenger.server.utils.enums.MessageTypeEnum;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class MessagePayload {
+public class MessagePayload implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

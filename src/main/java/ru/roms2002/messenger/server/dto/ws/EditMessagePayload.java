@@ -1,4 +1,4 @@
-package ru.roms2002.messenger.server.dto;
+package ru.roms2002.messenger.server.dto.ws;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -9,13 +9,12 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-public class AddUserDTO {
+@AllArgsConstructor
+public class EditMessagePayload {
 
-	@JsonProperty("user_id")
-	private int userId;
+	@JsonProperty("message_id")
+	private int messageId;
 
-	@JsonProperty("chat_id")
-	private int chatId;
+	private String message;
 }

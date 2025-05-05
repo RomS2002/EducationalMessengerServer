@@ -38,7 +38,7 @@
             	<constraints nullable="false" unique="true"/>
             </column>
             
-            <column name="last_action_time" type="date"/>
+            <column name="last_action_time" type="datetime"/>
         </createTable>
         
         <createIndex indexName="ind_user_regtoken" tableName="user" unique="true">

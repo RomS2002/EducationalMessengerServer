@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
@@ -19,6 +20,7 @@ import ru.roms2002.messenger.server.service.InfoServerService;
 import ru.roms2002.messenger.server.service.UserService;
 
 @Component
+@Order(99)
 public class AccountEnabledFilter implements Filter {
 
 	@Autowired
