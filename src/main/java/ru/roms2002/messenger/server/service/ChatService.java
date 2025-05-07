@@ -1,5 +1,6 @@
 package ru.roms2002.messenger.server.service;
 
+import java.util.Iterator;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -147,5 +148,74 @@ public class ChatService {
 		WebSocketDTO wsDto = webSocketService.sendMessage(infoMessage);
 		webSocketService.send("/topic/chat/" + chatId, wsDto);
 		return true;
+	}
+
+	public void createStudgroupChat(String groupName) {
+		ChatEntity studgroupChat = new ChatEntity();
+		studgroupChat.setType(ChatTypeEnum.STUDGROUP);
+		studgroupChat.setName(groupName);
+		chatRepository.save(studgroupChat);
+	}
+
+	public ChatEntity findByStudgroupName(String groupName) {
+		return chatRepository.findByStudgroupName(groupName).get();
+	}
+
+	public Optional<ChatEntity> findByDepartment(String department) {
+		return chatRepository.findByDepartment(department);
+	}
+
+	public void addUserToStudgroup(UserEntity user, String groupName) {
+		ChatEntity studgroupChat = findByStudgroupName(groupName);
+		addUserToChat(user.getId(), studgroupChat.getId(), true);
+	}
+
+	public void createDepartmentChatIfNotExists(String department) {
+		Optional<ChatEntity> tmp = findByDepartment(department);
+		if (!tmp.isEmpty())
+			return;
+
+		ChatEntity departmentChat = new ChatEntity();
+		departmentChat.setType(ChatTypeEnum.DEPARTMENT);
+		departmentChat.setName("Кафедра «" + department + "»");
+		chatRepository.save(departmentChat);
+	}
+
+	public void addUserToDepartmentChat(UserEntity user, String department) {
+		createDepartmentChatIfNotExists(department);
+		ChatEntity departmentChat = findByDepartment(department).get();
+		addUserToChat(user.getId(), departmentChat.getId(), true);
+	}
+
+	public ChatEntity getUserSpecialChat(UserEntity user) {
+		return userChatService.findSpecialChatByUser(user);
+	}
+
+	public void changeUserDepartmentChat(UserEntity user, String department) {
+		createDepartmentChatIfNotExists(department);
+		ChatEntity departmentChat = findByDepartment(department).get();
+		removeUserFromChat(user.getId(), getUserSpecialChat(user).getId(), true);
+		addUserToChat(user.getId(), departmentChat.getId(), true);
+	}
+
+	public void changeUserStudgroupChat(UserEntity user, String groupName) {
+		ChatEntity studgroupChat = findByStudgroupName(groupName);
+		removeUserFromChat(user.getId(), getUserSpecialChat(user).getId(), true);
+		addUserToChat(user.getId(), studgroupChat.getId(), true);
+	}
+
+	public ChatEntity save(ChatEntity chat) {
+		return chatRepository.save(chat);
+	}
+
+	public void delete(ChatEntity chat) {
+		Iterator<MessageEntity> it = chat.getMessages().iterator();
+		while (it.hasNext()) {
+			MessageEntity msg = it.next();
+			it.remove();
+			System.out.println(messageService.deleteMessage(msg.getId(), null, true));
+			System.out.println("!1");
+		}
+		chatRepository.delete(chat);
 	}
 }

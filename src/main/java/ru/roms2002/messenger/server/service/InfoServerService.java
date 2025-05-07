@@ -62,4 +62,13 @@ public class InfoServerService {
 		UserDetailsDTO userDetails = getUserDetailsByAdminpanelId(secondUser.getAdminpanelId());
 		return String.format("%s %s", userDetails.getFirstName(), userDetails.getLastName());
 	}
+
+	@SuppressWarnings("unchecked")
+	public List<String> getDepartments() {
+		ObjectMapper mapper = new ObjectMapper();
+		List<Object> rawList = restClient.get().uri(infoserverURI + "/get-departments").retrieve()
+				.body(List.class);
+		return mapper.convertValue(rawList, new TypeReference<List<String>>() {
+		});
+	}
 }

@@ -31,11 +31,11 @@ public class MessagePayload implements Serializable {
 	@JsonProperty("chat_id")
 	private int chatId;
 
-	@JsonProperty("user_id")
-	private int userId;
+	@JsonProperty("sender_id")
+	private int senderId;
 
-	@JsonProperty("chat_name")
-	private String chatName;
+	@JsonProperty("sender_name")
+	private String senderName;
 
 	private MessageTypeEnum type;
 

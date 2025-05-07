@@ -63,8 +63,8 @@ public class WsController {
 		case "deleteMessage":
 			Integer delMessageId = new ObjectMapper().convertValue(payload.getPayload(),
 					Integer.class);
-			if (!messageService.deleteMessage(delMessageId,
-					userService.findByEmail(user.getName())))
+			if (!messageService.deleteMessage(delMessageId, userService.findByEmail(user.getName()),
+					false))
 				return null;
 			wsDto = webSocketService.sendDeleteNotification(delMessageId);
 			break;
@@ -107,8 +107,8 @@ public class WsController {
 		case "deleteMessage":
 			Integer delMessageId = new ObjectMapper().convertValue(payload.getPayload(),
 					Integer.class);
-			if (!messageService.deleteMessage(delMessageId,
-					userService.findByEmail(user.getName())))
+			if (!messageService.deleteMessage(delMessageId, userService.findByEmail(user.getName()),
+					false))
 				return null;
 			wsDto = webSocketService.sendDeleteNotification(delMessageId);
 			break;

@@ -4,6 +4,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketHandler;
@@ -26,6 +27,9 @@ public class WsConfig implements WebSocketMessageBrokerConfigurer {
 
 	@Autowired
 	private UserService userService;
+
+	@Autowired
+	private SubscribtionInterceptor subscribtionInterceptor;
 
 	@Override
 	public void configureMessageBroker(MessageBrokerRegistry registry) {
@@ -74,5 +78,10 @@ public class WsConfig implements WebSocketMessageBrokerConfigurer {
 				};
 			}
 		});
+	}
+
+	@Override
+	public void configureClientInboundChannel(ChannelRegistration registration) {
+		registration.interceptors(subscribtionInterceptor);
 	}
 }

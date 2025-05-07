@@ -63,4 +63,12 @@ public class MessageUserService {
 				.findByMessageId(message.getId());
 		return messageUserList.stream().filter(mu -> mu.isSeen()).count() > 1;
 	}
+
+	public void delete(MessageUserEntity messageUser) {
+		messageUserRepository.delete(messageUser);
+	}
+
+	public void deleteAllMessagesFromUserInChat(int userId, int chatId) {
+		messageUserRepository.deleteAllMessagesFromUserInChat(userId, chatId);
+	}
 }

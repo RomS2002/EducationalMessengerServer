@@ -1,5 +1,6 @@
 package ru.roms2002.messenger.server.service;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -19,6 +20,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketSession;
 
 import jakarta.servlet.http.Cookie;
@@ -240,10 +242,16 @@ public class UserService {
 
 			UserEntity newUser = new UserEntity(adminpanelID, encodedPassword,
 					userDto.getRegToken(), userDto.getEmail(), role);
+			newUser = userRepository.save(newUser);
 
-			userRepository.save(newUser);
+			if (newUser.getRole() == RoleEnum.STUDENT)
+				chatService.addUserToStudgroup(newUser, userDetails.getGroupName());
+			if (newUser.getRole() == RoleEnum.PROFESSOR)
+				chatService.addUserToDepartmentChat(newUser, userDetails.getDepartment());
+
 			return RegisterUserStatus.OK;
 		} catch (Exception e) {
+			e.printStackTrace();
 			return RegisterUserStatus.SERVER_ERROR;
 		}
 	}
@@ -348,5 +356,22 @@ public class UserService {
 		Date lastActionTime = user.getLastActionTime();
 		long timeDiff = new Date().getTime() - lastActionTime.getTime();
 		return timeDiff < StaticVariable.SECONDS_SAVE_ONLINE_STATUS * 1000;
+	}
+
+	public void destroyAllWsSessions(String username) {
+		if (getWsSessions().get(username) == null)
+			return;
+
+		for (WebSocketSession session : getWsSessions().get(username)) {
+			try {
+				session.close(CloseStatus.NOT_ACCEPTABLE);
+			} catch (IOException e) {
+
+			}
+		}
+	}
+
+	public void delete(UserEntity user) {
+		userRepository.delete(user);
 	}
 }

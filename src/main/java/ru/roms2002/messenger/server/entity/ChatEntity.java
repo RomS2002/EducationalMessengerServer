@@ -11,6 +11,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -52,12 +53,16 @@ public class ChatEntity implements Serializable {
 	@CreationTimestamp
 	private Timestamp createdAt;
 
-	@ManyToMany(fetch = FetchType.EAGER)
+	@ManyToMany(fetch = FetchType.EAGER, cascade = {})
 	@JoinTable(name = "user_chat", joinColumns = @JoinColumn(name = "chat_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
 	@JsonIgnore
 	private Set<UserEntity> users = new HashSet<>();
 
-	@OneToMany(mappedBy = "chat")
+	@OneToMany(mappedBy = "chat", cascade = CascadeType.ALL)
 	@JsonIgnore
 	private List<MessageEntity> messages = new CopyOnWriteArrayList<>();
+
+	@OneToMany(mappedBy = "chat", cascade = CascadeType.ALL)
+	@JsonIgnore
+	private List<UserChatEntity> userChats = new CopyOnWriteArrayList<>();
 }

@@ -3,8 +3,10 @@ package ru.roms2002.messenger.server.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import ru.roms2002.messenger.server.entity.ChatEntity;
 import ru.roms2002.messenger.server.entity.UserChatEntity;
 import ru.roms2002.messenger.server.entity.UserChatKey;
+import ru.roms2002.messenger.server.entity.UserEntity;
 import ru.roms2002.messenger.server.repository.UserChatJoinRepository;
 
 @Service
@@ -21,6 +23,10 @@ public class UserChatJoinService {
 
 	public UserChatEntity save(UserChatEntity userChat) {
 		return userChatJoinRepository.save(userChat);
+	}
+
+	public ChatEntity findSpecialChatByUser(UserEntity user) {
+		return userChatJoinRepository.findSpecialChatByUser(user);
 	}
 
 //    @Autowired

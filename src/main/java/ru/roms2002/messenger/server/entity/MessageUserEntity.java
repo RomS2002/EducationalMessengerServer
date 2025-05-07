@@ -25,12 +25,12 @@ public class MessageUserEntity implements Serializable {
 	@EmbeddedId
 	private MessageUserKey id;
 
-	@ManyToOne(cascade = { CascadeType.PERSIST })
+	@ManyToOne(cascade = { CascadeType.DETACH, CascadeType.REFRESH, CascadeType.PERSIST })
 	@MapsId("messageId")
 	@JoinColumn(name = "message_id")
 	private MessageEntity message;
 
-	@ManyToOne(cascade = { CascadeType.PERSIST })
+	@ManyToOne
 	@MapsId("userId")
 	@JoinColumn(name = "user_id")
 	private UserEntity user;

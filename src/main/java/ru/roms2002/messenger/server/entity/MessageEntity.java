@@ -57,7 +57,7 @@ public class MessageEntity {
 	@JsonIgnore
 	private UserEntity user;
 
-	@OneToOne(mappedBy = "message", cascade = { CascadeType.PERSIST, CascadeType.REFRESH })
+	@OneToOne(mappedBy = "message", cascade = CascadeType.ALL)
 	@JsonIgnore
 	private FileEntity file;
 
