@@ -3,7 +3,6 @@ package ru.roms2002.messenger.server.service;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,7 +32,7 @@ public class FileService {
 
 	public void deleteFileFromMessage(MessageEntity messageEntity) {
 		String url = messageEntity.getFile().getUrl();
-		Path path = Paths.get(url);
+		Path path = Path.of(url);
 		try {
 			Files.delete(path);
 		} catch (IOException e) {
@@ -42,7 +41,7 @@ public class FileService {
 	}
 
 	public boolean saveFileOnDisk(String url, String filename, MultipartFile file) {
-		Path path = Paths.get(url);
+		Path path = Path.of(url);
 		if (!Files.exists(path)) {
 			try {
 				Files.createDirectories(path);

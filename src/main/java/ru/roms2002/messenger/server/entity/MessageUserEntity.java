@@ -2,7 +2,6 @@ package ru.roms2002.messenger.server.entity;
 
 import java.io.Serializable;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
@@ -25,12 +24,12 @@ public class MessageUserEntity implements Serializable {
 	@EmbeddedId
 	private MessageUserKey id;
 
-	@ManyToOne(cascade = { CascadeType.DETACH, CascadeType.REFRESH, CascadeType.PERSIST })
+	@ManyToOne(cascade = {})
 	@MapsId("messageId")
 	@JoinColumn(name = "message_id")
 	private MessageEntity message;
 
-	@ManyToOne
+	@ManyToOne(cascade = {})
 	@MapsId("userId")
 	@JoinColumn(name = "user_id")
 	private UserEntity user;

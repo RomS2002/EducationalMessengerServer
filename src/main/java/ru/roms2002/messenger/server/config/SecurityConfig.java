@@ -23,26 +23,10 @@ public class SecurityConfig {
 	@Value("${infoserver.ip}")
 	private String LOCAL_NETWORK_CIDR;
 
-	@Autowired
-	private AccountEnabledFilter accountEnabledFilter;
-
 	@Bean
 	PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
-
-//    @Bean
-//    public CorsConfigurationSource corsConfigurationSource() {
-//        CorsConfiguration configuration = new CorsConfiguration();
-//        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
-//        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "OPTIONS"));
-//        configuration.setAllowedMethods(List.of("*"));
-//        configuration.setAllowedHeaders(List.of("*"));
-//        configuration.setAllowCredentials(Boolean.TRUE);
-//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-//        source.registerCorsConfiguration("/**", configuration);
-//        return source;
-//    }
 
 	@Bean
 	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -55,25 +39,4 @@ public class SecurityConfig {
 								.permitAll().anyRequest().authenticated());
 		return http.build();
 	}
-
-//    protected void configure(HttpSecurity http) throws Exception {
-//        http.cors().and()
-//                .csrf()
-//                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-//                .and()
-//                .authorizeRequests()
-//                .antMatchers("/api/auth").permitAll()
-//                .antMatchers("/api/user/register").permitAll()
-//                .antMatchers("/ws").permitAll()
-//                .antMatchers("/static/**").permitAll()
-//                .antMatchers("/images/**").permitAll()
-//                .antMatchers("/").permitAll()
-//                .anyRequest().authenticated()
-//                .and()
-//                .exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint)
-//                .and()
-//                .sessionManagement()
-//                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-//        http.addFilterBefore(jwtWebConfig, UsernamePasswordAuthenticationFilter.class);
-//    }
 }

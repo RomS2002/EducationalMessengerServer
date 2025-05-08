@@ -62,11 +62,11 @@ public class UserEntity implements UserDetails, Serializable {
 	@Column(name = "reg_token")
 	private String regToken;
 
-	@ManyToMany(fetch = FetchType.EAGER, mappedBy = "users")
+	@ManyToMany(fetch = FetchType.EAGER, mappedBy = "users", cascade = {})
 	@JsonIgnore
 	private List<ChatEntity> chats = new CopyOnWriteArrayList<>();
 
-	@OneToMany(mappedBy = "user")
+	@OneToMany(mappedBy = "user", cascade = {})
 	@JsonIgnore
 	private Set<MessageEntity> messages;
 

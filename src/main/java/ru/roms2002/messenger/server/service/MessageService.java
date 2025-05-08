@@ -44,7 +44,7 @@ public class MessageService {
 	private InfoServerService infoServerService;
 
 	@Autowired
-	private UserChatJoinService userChatJoinService;
+	private UserChatService userChatJoinService;
 
 	public MessageEntity saveMessageInChat(MessageSendDTO message, String username, int chatId) {
 		UserEntity user = userService.findByEmail(username);
@@ -214,7 +214,6 @@ public class MessageService {
 		Optional<MessageEntity> msg = messageRepository.findById(delMessageId);
 		if (msg.isEmpty())
 			return false;
-		System.out.println(msg.get().getMessage());
 		MessageEntity messageEntity = msg.get();
 
 		if (!automated) {
@@ -234,7 +233,6 @@ public class MessageService {
 		if (messageEntity.getType() == MessageTypeEnum.FILE)
 			fileService.deleteFileFromMessage(messageEntity);
 
-		System.out.println("!!");
 		messageRepository.delete(messageEntity);
 		return true;
 	}
@@ -252,17 +250,9 @@ public class MessageService {
 		Iterator<MessageEntity> it = messageList.iterator();
 		while (it.hasNext()) {
 			MessageEntity msg = it.next();
-			if (msg.getType() != MessageTypeEnum.INFO && msg.getUser().getId() == user.getId()) {
-				System.out.println(msg.getUser().getId() + " " + user.getId());
+			if (msg.getType() != MessageTypeEnum.INFO && msg.getUser().getId() == user.getId())
 				it.remove();
-				System.out.println(deleteMessage(msg.getId(), user, true));
-			}
 		}
 		chat = chatService.save(chat);
-		System.out.println(chat.getMessages());
-		// messageUserService.deleteAllMessagesFromUserInChat(user.getId(),
-		// chat.getId());
-		// messageRepository.deleteAllMessagesFromUserInChat(user.getId(),
-		// chat.getId());
 	}
 }

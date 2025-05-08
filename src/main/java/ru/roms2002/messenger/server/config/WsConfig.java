@@ -23,9 +23,6 @@ import ru.roms2002.messenger.server.service.UserService;
 public class WsConfig implements WebSocketMessageBrokerConfigurer {
 
 	@Autowired
-	private HandShakeInterceptor handShakeInterceptor;
-
-	@Autowired
 	private UserService userService;
 
 	@Autowired
@@ -39,7 +36,7 @@ public class WsConfig implements WebSocketMessageBrokerConfigurer {
 
 	@Override
 	public void registerStompEndpoints(StompEndpointRegistry registry) {
-		registry.addEndpoint("/messenger").addInterceptors(handShakeInterceptor);
+		registry.addEndpoint("/messenger");
 	}
 
 	@Override
@@ -60,7 +57,6 @@ public class WsConfig implements WebSocketMessageBrokerConfigurer {
 							userService.getWsSessions().get(username).add(session);
 						}
 
-						System.out.println(userService.getWsSessions());
 						super.afterConnectionEstablished(session);
 					}
 
@@ -72,7 +68,7 @@ public class WsConfig implements WebSocketMessageBrokerConfigurer {
 						if (userService.getWsSessions().get(username).isEmpty()) {
 							userService.getWsSessions().remove(username);
 						}
-						System.out.println(userService.getWsSessions());
+
 						super.afterConnectionClosed(session, closeStatus);
 					}
 				};

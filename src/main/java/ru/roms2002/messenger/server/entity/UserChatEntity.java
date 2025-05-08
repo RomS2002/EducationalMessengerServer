@@ -25,12 +25,12 @@ public class UserChatEntity implements Serializable {
 	@EmbeddedId
 	private UserChatKey id;
 
-	@ManyToOne
+	@ManyToOne(cascade = {})
 	@MapsId("chatId")
 	@JoinColumn(name = "chat_id")
 	private ChatEntity chat;
 
-	@ManyToOne
+	@ManyToOne(cascade = {})
 	@MapsId("userId")
 	@JoinColumn(name = "user_id")
 	private UserEntity user;

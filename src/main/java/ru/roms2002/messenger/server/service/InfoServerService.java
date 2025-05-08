@@ -29,10 +29,6 @@ public class InfoServerService {
 	}
 
 	public TokenStatus checkToken(CheckTokenDTO checkTokenDTO) {
-//		ResponseSpec response = restClient.post().uri(infoserverURI + "/checktoken")
-//				.contentType(MediaType.APPLICATION_JSON).body(checkTokenDTO).retrieve();
-//		System.out.println(response.body(String.class));
-//		return response.body(TokenStatus.class);
 		return restClient.post().uri(infoserverURI + "/checktoken")
 				.contentType(MediaType.APPLICATION_JSON).body(checkTokenDTO).retrieve()
 				.body(TokenStatus.class);

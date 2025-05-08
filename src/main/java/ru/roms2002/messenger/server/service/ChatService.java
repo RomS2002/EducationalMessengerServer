@@ -1,6 +1,5 @@
 package ru.roms2002.messenger.server.service;
 
-import java.util.Iterator;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +23,7 @@ public class ChatService {
 	private UserService userService;
 
 	@Autowired
-	private UserChatJoinService userChatService;
+	private UserChatService userChatService;
 
 	@Autowired
 	private MessageUserService messageUserService;
@@ -172,7 +171,7 @@ public class ChatService {
 
 	public void createDepartmentChatIfNotExists(String department) {
 		Optional<ChatEntity> tmp = findByDepartment(department);
-		if (!tmp.isEmpty())
+		if (tmp.isPresent())
 			return;
 
 		ChatEntity departmentChat = new ChatEntity();
@@ -209,13 +208,16 @@ public class ChatService {
 	}
 
 	public void delete(ChatEntity chat) {
-		Iterator<MessageEntity> it = chat.getMessages().iterator();
-		while (it.hasNext()) {
-			MessageEntity msg = it.next();
-			it.remove();
-			System.out.println(messageService.deleteMessage(msg.getId(), null, true));
-			System.out.println("!1");
-		}
 		chatRepository.delete(chat);
+	}
+
+	public Integer getNumberOfUsersInChat(Integer chatId) {
+		ChatEntity chat = findById(chatId);
+		if (chat == null)
+			return 0;
+		UserEntity user = userService.getCurrentUser();
+		if (!user.getChats().contains(chat))
+			return 0;
+		return user.getChats().size();
 	}
 }

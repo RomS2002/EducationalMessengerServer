@@ -13,7 +13,7 @@ import ru.roms2002.messenger.server.entity.UserChatKey;
 import ru.roms2002.messenger.server.entity.UserEntity;
 
 @Repository
-public interface UserChatJoinRepository extends JpaRepository<UserChatEntity, UserChatKey> {
+public interface UserChatRepository extends JpaRepository<UserChatEntity, UserChatKey> {
 
 	@Query(value = "SELECT * FROM group_user WHERE group_id=:groupId", nativeQuery = true)
 	List<UserChatEntity> getAllByGroupId(@Param("groupId") int groupId);

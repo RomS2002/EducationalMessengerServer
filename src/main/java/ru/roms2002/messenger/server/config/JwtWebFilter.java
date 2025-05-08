@@ -23,7 +23,6 @@ public class JwtWebFilter extends OncePerRequestFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
 			FilterChain filterChain) throws ServletException, IOException {
-
 		Cookie cookie = WebUtils.getCookie(request, "JWT");
 		String jwtToken = null;
 
@@ -31,8 +30,6 @@ public class JwtWebFilter extends OncePerRequestFilter {
 			jwtToken = cookie.getValue();
 		else
 			jwtToken = request.getHeader("JWT");
-
-		System.out.println(jwtToken);
 
 		if (jwtToken != null) {
 			userService.authenticateUser(jwtToken);

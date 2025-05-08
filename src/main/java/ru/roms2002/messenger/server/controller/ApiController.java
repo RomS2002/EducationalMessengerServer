@@ -23,7 +23,6 @@ import ru.roms2002.messenger.server.dto.UserDetailsDTO;
 import ru.roms2002.messenger.server.dto.UserInListDTO;
 import ru.roms2002.messenger.server.entity.ChatEntity;
 import ru.roms2002.messenger.server.entity.UserEntity;
-import ru.roms2002.messenger.server.mapper.GroupMapper;
 import ru.roms2002.messenger.server.service.ChatService;
 import ru.roms2002.messenger.server.service.MessageService;
 import ru.roms2002.messenger.server.service.UserService;
@@ -41,13 +40,7 @@ public class ApiController {
 	private ChatService chatService;
 
 	@Autowired
-	private GroupMapper groupMapper;
-
-	@Autowired
 	private MessageService messageService;
-
-//	@Autowired
-//	private GroupUserJoinService groupUserJoinService;
 
 	@GetMapping("/test")
 	public void test() {
@@ -112,5 +105,18 @@ public class ApiController {
 	@GetMapping("/chat/{chatId}/messages")
 	public List<MessageDTO> getMessages(@PathVariable Integer chatId, @RequestParam Integer page) {
 		return messageService.getMessagesInChat(chatId, page, StaticVariable.MESSAGE_PAGE_SIZE);
+	}
+
+	@GetMapping("/get-online-status/{userId}")
+	public String getOnline(@PathVariable Integer userId) {
+		UserEntity user = userService.findById(userId);
+		if (user == null)
+			return "NoUser";
+		return (userService.checkOnline(user)) ? "В сети" : "Не в сети";
+	}
+
+	@GetMapping("/chat/{chatId}/user-number")
+	public Integer getNumberOfUsersInChat(@PathVariable Integer chatId) {
+		return chatService.getNumberOfUsersInChat(chatId);
 	}
 }

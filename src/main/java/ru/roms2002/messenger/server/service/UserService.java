@@ -3,7 +3,6 @@ package ru.roms2002.messenger.server.service;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -100,7 +99,7 @@ public class UserService {
 			if (!ext.equals(".jpg")) {
 				return false;
 			}
-			Path path = Paths.get("./uploads/avatar");
+			Path path = Path.of("./uploads/avatar");
 			if (!Files.exists(path)) {
 				Files.createDirectories(path);
 			}
@@ -292,7 +291,7 @@ public class UserService {
 
 	public UserEntity findById(int id) {
 		Optional<UserEntity> tmp = userRepository.findById(id);
-		if (!tmp.isEmpty()) {
+		if (tmp.isPresent()) {
 			return tmp.get();
 		}
 		return null;
@@ -326,7 +325,6 @@ public class UserService {
 				UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
 						userDetails, null, userDetails.getAuthorities());
 				SecurityContextHolder.getContext().setAuthentication(auth);
-				System.out.println(auth.isAuthenticated());
 				return;
 			}
 		} catch (UsernameNotFoundException e) {
@@ -337,7 +335,7 @@ public class UserService {
 
 	public UserEntity findByAdminpanelId(int id) {
 		Optional<UserEntity> tmp = userRepository.findByAdminpanelId(id);
-		if (!tmp.isEmpty()) {
+		if (tmp.isPresent()) {
 			return tmp.get();
 		}
 		return null;

@@ -53,6 +53,7 @@ public class AccountEnabledFilter implements Filter {
 				httpResponse.getOutputStream().println("Account is expired");
 				return;
 			}
+			userService.updateOnline(user);
 			chain.doFilter(request, response);
 		}
 	}

@@ -26,7 +26,6 @@ public class MessageUserService {
 		ChatEntity chat = message.getChat();
 		UserEntity sender = message.getUser();
 		for (UserEntity user : chat.getUsers()) {
-			System.out.println(message.getChat().getId());
 			MessageUserEntity messageUser = new MessageUserEntity(
 					new MessageUserKey(message.getId(), user.getId()), message, user,
 					user.equals(sender));
