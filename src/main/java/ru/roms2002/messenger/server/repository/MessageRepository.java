@@ -16,7 +16,7 @@ import ru.roms2002.messenger.server.entity.MessageEntity;
 public interface MessageRepository extends PagingAndSortingRepository<MessageEntity, Integer>,
 		JpaRepository<MessageEntity, Integer> {
 
-	@Query("from MessageEntity where chat.id = :id order by createdAt desc")
+	@Query("from MessageEntity where chat.id = :id order by createdAt desc, id desc")
 	List<MessageEntity> findByChatId(int id, Pageable pageable);
 
 	@Transactional

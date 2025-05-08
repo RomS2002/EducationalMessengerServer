@@ -25,7 +25,7 @@ public class MessageUserService {
 			return;
 		ChatEntity chat = message.getChat();
 		UserEntity sender = message.getUser();
-		for (UserEntity user : chat.getUsers()) {
+		for (UserEntity user : chat.getUserChats().stream().map(uc -> uc.getUser()).toList()) {
 			MessageUserEntity messageUser = new MessageUserEntity(
 					new MessageUserKey(message.getId(), user.getId()), message, user,
 					user.equals(sender));
@@ -69,5 +69,9 @@ public class MessageUserService {
 
 	public void deleteAllMessagesFromUserInChat(int userId, int chatId) {
 		messageUserRepository.deleteAllMessagesFromUserInChat(userId, chatId);
+	}
+
+	public int getNotReadByUserInChat(int userId, int chatId) {
+		return messageUserRepository.countSeenByUserInChat(userId, chatId);
 	}
 }

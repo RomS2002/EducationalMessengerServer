@@ -29,4 +29,7 @@ public class ChatDTO {
 
 	@JsonProperty("user_type")
 	private RoleEnum userType;
+
+	@JsonProperty("not_read")
+	private int notRead;
 }

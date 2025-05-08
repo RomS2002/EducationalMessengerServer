@@ -6,6 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -31,7 +32,7 @@ public class FileEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int Id;
 
-	@OneToOne(cascade = {})
+	@OneToOne(cascade = { CascadeType.PERSIST })
 	@JoinColumn(name = "message_id")
 	@JsonIgnore
 	private MessageEntity message;

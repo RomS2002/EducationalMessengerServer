@@ -1,6 +1,6 @@
 package ru.roms2002.messenger.server.controller;
 
-import java.util.Iterator;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,6 +15,7 @@ import ru.roms2002.messenger.server.entity.ChatEntity;
 import ru.roms2002.messenger.server.entity.UserEntity;
 import ru.roms2002.messenger.server.service.ChatService;
 import ru.roms2002.messenger.server.service.MessageService;
+import ru.roms2002.messenger.server.service.UserChatService;
 import ru.roms2002.messenger.server.service.UserService;
 import ru.roms2002.messenger.server.utils.enums.ChatTypeEnum;
 import ru.roms2002.messenger.server.utils.enums.RoleEnum;
@@ -28,6 +29,9 @@ public class NotificationController {
 
 	@Autowired
 	private ChatService chatService;
+
+	@Autowired
+	private UserChatService userChatService;
 
 	@Autowired
 	private MessageService messageService;
@@ -83,12 +87,10 @@ public class NotificationController {
 	@PostMapping("/delete-group")
 	public void sendDeleteGroupNotification(@RequestBody String groupName) {
 		ChatEntity studgroupChat = chatService.findByStudgroupName(groupName);
-		Iterator<UserEntity> it = studgroupChat.getUsers().iterator();
-		while (it.hasNext()) {
-			UserEntity userInStudgroup = it.next();
-			this.deleteUser(userInStudgroup.getAdminpanelId());
-			it.remove();
-		}
+		List<UserEntity> users = studgroupChat.getUserChats().stream().map(uc -> uc.getUser())
+				.toList();
+		for (UserEntity user : users)
+			deleteUser(user.getAdminpanelId());
 		chatService.delete(studgroupChat);
 	}
 
@@ -97,28 +99,20 @@ public class NotificationController {
 		if (user == null)
 			return;
 		userService.destroyAllWsSessions(user.getEmail());
-		Iterator<ChatEntity> it = user.getChats().iterator();
-		while (it.hasNext()) {
-			ChatEntity chat = it.next();
+		List<ChatEntity> chats = user.getUserChats().stream().map(uc -> uc.getChat()).toList();
+		for (ChatEntity chat : chats) {
 			if (chat.getType() == ChatTypeEnum.SINGLE) {
 				chatService.delete(chat);
 			} else {
 				messageService.deleteAllMessagesFromUserInChat(user, chat);
 				chat = chatService.findById(chat.getId());
-				System.out.println(chat.getId());
-				System.out.println(chat.getMessages());
-				System.out.println("2) " + chat.getUserChats().get(0).getUser().getId());
-				if (chat.getUsers().size() == 1 && chat.getType() != ChatTypeEnum.STUDGROUP) {
+				if (chat.getUserChats().size() == 1 && chat.getType() == ChatTypeEnum.GROUP) {
 					chatService.delete(chat);
 				} else {
 					chatService.removeUserFromChat(user.getId(), chat.getId(), true);
-					chat.getUsers().remove(user);
-					chat = chatService.save(chat);
 				}
 			}
-			it.remove();
 		}
-		user = userService.save(user);
-		userService.delete(user);
+		userService.deleteById(user.getId());
 	}
 }

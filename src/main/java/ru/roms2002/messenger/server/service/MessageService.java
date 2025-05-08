@@ -1,6 +1,5 @@
 package ru.roms2002.messenger.server.service;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -44,13 +43,13 @@ public class MessageService {
 	private InfoServerService infoServerService;
 
 	@Autowired
-	private UserChatService userChatJoinService;
+	private UserChatService userChatService;
 
 	public MessageEntity saveMessageInChat(MessageSendDTO message, String username, int chatId) {
 		UserEntity user = userService.findByEmail(username);
 		MessageEntity messageEntity = new MessageEntity();
 		ChatEntity chat = chatService.findById(chatId);
-		if (!chat.getUsers().contains(user)) {
+		if (userChatService.findUserChat(user.getId(), chatId) == null) {
 			return null;
 		}
 		messageEntity.setChat(chat);
@@ -95,7 +94,7 @@ public class MessageService {
 
 		if (chat == null)
 			return null;
-		if (!user.getChats().contains(chat))
+		if (userChatService.findUserChat(user.getId(), chatId) == null)
 			return null;
 
 		Pageable countMessages = PageRequest.of(page, count);
@@ -107,8 +106,10 @@ public class MessageService {
 			String filename = (msg.getFile() == null) ? null : msg.getFile().getFilename();
 			int userId = (msg.getType() != MessageTypeEnum.INFO) ? msg.getUser().getId() : 0;
 
+			boolean seen = messageUserService.isMessageSeen(msg);
+
 			return new MessageDTO(msg.getId(), userId, msg.getChat().getId(), msg.getType(),
-					msg.getCreatedAt(), msg.getMessage(), filename, fullName, true);
+					msg.getCreatedAt(), msg.getMessage(), filename, fullName, seen);
 		}).toList();
 	}
 
@@ -180,7 +181,7 @@ public class MessageService {
 			return false;
 		ChatEntity chat = message.get().getChat();
 		UserEntity user = userService.getCurrentUser();
-		return chat.getUsers().contains(user);
+		return userChatService.findUserChat(chat.getId(), user.getId()) == null;
 	}
 
 	public void setMessageRead(int messageId, String username) {
@@ -220,7 +221,7 @@ public class MessageService {
 			if (messageEntity.getType() == MessageTypeEnum.INFO)
 				return false;
 
-			UserChatEntity userChat = userChatJoinService.findUserChat(curUser.getId(),
+			UserChatEntity userChat = userChatService.findUserChat(curUser.getId(),
 					messageEntity.getChat().getId());
 			if (userChat == null)
 				return false;
@@ -247,12 +248,7 @@ public class MessageService {
 
 	public void deleteAllMessagesFromUserInChat(UserEntity user, ChatEntity chat) {
 		List<MessageEntity> messageList = chat.getMessages();
-		Iterator<MessageEntity> it = messageList.iterator();
-		while (it.hasNext()) {
-			MessageEntity msg = it.next();
-			if (msg.getType() != MessageTypeEnum.INFO && msg.getUser().getId() == user.getId())
-				it.remove();
-		}
-		chat = chatService.save(chat);
+		for (MessageEntity message : messageList)
+			deleteMessage(message.getId(), null, true);
 	}
 }

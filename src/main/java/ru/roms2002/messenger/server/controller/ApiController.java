@@ -92,13 +92,30 @@ public class ApiController {
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
+	@PostMapping("/chat/provide-admin")
+	public ResponseEntity<Void> provideToAdmin(@RequestBody AddRemoveUserDTO userChatDTO) {
+		if (!chatService.makeUserAdminInChat(userChatDTO.getUserId(), userChatDTO.getChatId(),
+				false)) {
+			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+		}
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+
+	@DeleteMapping("/chat/{chatId}/delete")
+	public ResponseEntity<Void> deleteChat(@PathVariable Integer chatId) {
+		if (!chatService.deleteChat(chatId, false)) {
+			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+		}
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+
 	@PostMapping("/chat/create-group")
 	public ResponseEntity<Void> createGroupChat(@RequestBody String chatName) {
 
 		ChatEntity chat = chatService.createGroupChat(chatName);
 		UserEntity user = userService.getCurrentUser();
-		chatService.addUserToChat(user.getId(), chat.getId(), false);
-		chatService.makeUserAdminInChat(user.getId(), chat);
+		chatService.addUserToChat(user.getId(), chat.getId(), true);
+		chatService.makeUserAdminInChat(user.getId(), chat.getId(), true);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
@@ -118,5 +135,12 @@ public class ApiController {
 	@GetMapping("/chat/{chatId}/user-number")
 	public Integer getNumberOfUsersInChat(@PathVariable Integer chatId) {
 		return chatService.getNumberOfUsersInChat(chatId);
+	}
+
+	@PostMapping("/chat/{chatId}/leave")
+	public ResponseEntity<Void> leaveFromChat(@PathVariable Integer chatId) {
+		if (!chatService.leaveFromChat(chatId))
+			return new ResponseEntity<Void>(HttpStatus.BAD_REQUEST);
+		return new ResponseEntity<Void>(HttpStatus.OK);
 	}
 }

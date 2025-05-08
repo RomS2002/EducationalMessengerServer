@@ -2,9 +2,7 @@ package ru.roms2002.messenger.server.entity;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -20,9 +18,6 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -53,16 +48,11 @@ public class ChatEntity implements Serializable {
 	@CreationTimestamp
 	private Timestamp createdAt;
 
-	@ManyToMany(fetch = FetchType.EAGER, cascade = {})
-	@JoinTable(name = "user_chat", joinColumns = @JoinColumn(name = "chat_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
-	@JsonIgnore
-	private Set<UserEntity> users = new HashSet<>();
-
 	@OneToMany(mappedBy = "chat", cascade = CascadeType.ALL)
 	@JsonIgnore
 	private List<MessageEntity> messages = new CopyOnWriteArrayList<>();
 
-	@OneToMany(mappedBy = "chat", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "chat", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	@JsonIgnore
 	private List<UserChatEntity> userChats = new CopyOnWriteArrayList<>();
 }

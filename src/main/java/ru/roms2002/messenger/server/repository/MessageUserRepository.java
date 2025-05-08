@@ -25,4 +25,7 @@ public interface MessageUserRepository extends JpaRepository<MessageUserEntity, 
 	@Modifying
 	@Query("delete from MessageUserEntity where message.chat.id = :chatId and user.id = :userId")
 	void deleteAllMessagesFromUserInChat(int userId, int chatId);
+
+	@Query("select count(*) from MessageUserEntity where message.chat.id = :chatId and user.id = :userId and seen = false")
+	int countSeenByUserInChat(int userId, int chatId);
 }

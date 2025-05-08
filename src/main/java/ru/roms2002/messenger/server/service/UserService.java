@@ -32,6 +32,7 @@ import ru.roms2002.messenger.server.dto.token.CheckTokenDTO;
 import ru.roms2002.messenger.server.dto.token.TokenStatus;
 import ru.roms2002.messenger.server.entity.ChatEntity;
 import ru.roms2002.messenger.server.entity.MessageEntity;
+import ru.roms2002.messenger.server.entity.UserChatEntity;
 import ru.roms2002.messenger.server.entity.UserEntity;
 import ru.roms2002.messenger.server.repository.UserRepository;
 import ru.roms2002.messenger.server.utils.JwtUtil;
@@ -84,8 +85,9 @@ public class UserService {
 	}
 
 	public ChatEntity getChatWith(UserEntity curUser, UserEntity user) {
-		for (ChatEntity chat : curUser.getChats())
-			if (chat.getUsers().contains(user) && chat.getType() == ChatTypeEnum.SINGLE)
+		for (ChatEntity chat : curUser.getUserChats().stream().map(cu -> cu.getChat()).toList())
+			if (chat.getUserChats().contains(new UserChatEntity(user, chat, false))
+					&& chat.getType() == ChatTypeEnum.SINGLE)
 				return chat;
 		return null;
 	}
@@ -137,11 +139,10 @@ public class UserService {
 	}
 
 	public List<ChatDTO> getChatList() {
-		String username = SecurityContextHolder.getContext().getAuthentication().getName();
-		UserEntity user = findByEmail(username);
+		UserEntity user = getCurrentUser();
 
 		List<ChatDTO> resultList = new ArrayList<>();
-		for (ChatEntity chat : user.getChats()) {
+		for (ChatEntity chat : user.getUserChats().stream().map(uc -> uc.getChat()).toList()) {
 			ChatDTO chatDTO = new ChatDTO();
 			chatDTO.setId(chat.getId());
 			chatDTO.setType(chat.getType());
@@ -181,7 +182,8 @@ public class UserService {
 					chatDTO.setMessageFrom(userDetailsDTO.getFirstName() + ":");
 				}
 			}
-
+			chatDTO.setNotRead(
+					messageUserService.getNotReadByUserInChat(user.getId(), chat.getId()));
 			resultList.add(chatDTO);
 		}
 
@@ -352,6 +354,8 @@ public class UserService {
 
 	public boolean checkOnline(UserEntity user) {
 		Date lastActionTime = user.getLastActionTime();
+		if (lastActionTime == null)
+			return false;
 		long timeDiff = new Date().getTime() - lastActionTime.getTime();
 		return timeDiff < StaticVariable.SECONDS_SAVE_ONLINE_STATUS * 1000;
 	}
@@ -369,7 +373,7 @@ public class UserService {
 		}
 	}
 
-	public void delete(UserEntity user) {
-		userRepository.delete(user);
+	public void deleteById(int userId) {
+		userRepository.deleteById(userId);
 	}
 }

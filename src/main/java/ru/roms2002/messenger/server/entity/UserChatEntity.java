@@ -1,6 +1,7 @@
 package ru.roms2002.messenger.server.entity;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
@@ -37,4 +38,28 @@ public class UserChatEntity implements Serializable {
 
 	@Column(name = "is_admin")
 	private boolean isAdmin;
+
+	public UserChatEntity(UserEntity user, ChatEntity chat, boolean isAdmin) {
+		this.id = new UserChatKey(chat.getId(), user.getId());
+		this.user = user;
+		this.chat = chat;
+		this.isAdmin = isAdmin;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(chat, id, isAdmin, user);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		UserChatEntity other = (UserChatEntity) obj;
+		return Objects.equals(chat, other.chat) && Objects.equals(user, other.user);
+	}
 }

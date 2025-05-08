@@ -37,6 +37,9 @@ public class ChatService {
 	@Autowired
 	private WebSocketService webSocketService;
 
+	@Autowired
+	private FileService fileService;
+
 	public ChatEntity createChatWith(UserEntity curUser, Integer userId) {
 		ChatEntity chatEntity = new ChatEntity();
 		chatEntity.setType(ChatTypeEnum.SINGLE);
@@ -47,8 +50,8 @@ public class ChatService {
 			return null;
 		}
 
-		chatEntity.getUsers().add(curUser);
-		chatEntity.getUsers().add(user2);
+		chatEntity.getUserChats().add(new UserChatEntity(curUser, chatEntity, false));
+		chatEntity.getUserChats().add(new UserChatEntity(user2, chatEntity, false));
 
 		chatEntity = chatRepository.save(chatEntity);
 		return chatEntity;
@@ -62,12 +65,31 @@ public class ChatService {
 		return chatEntity;
 	}
 
-	public void makeUserAdminInChat(int userId, ChatEntity chat) {
-		UserChatEntity userChatEntity = userChatService.findUserChat(userId, chat.getId());
+	public boolean makeUserAdminInChat(int userId, int chatId, boolean automated) {
+		UserEntity curUser = userService.getCurrentUser();
+		if (curUser == null && !automated)
+			return false;
+
+		UserChatEntity curUserChat = userChatService.findUserChat(curUser.getId(), chatId);
+		if (curUserChat == null)
+			return false;
+		if (!automated && !curUserChat.isAdmin())
+			return false;
+
+		UserChatEntity userChatEntity = userChatService.findUserChat(userId, chatId);
 		if (userChatEntity == null)
-			return;
+			return false;
 		userChatEntity.setAdmin(true);
 		userChatService.save(userChatEntity);
+
+		UserEntity user = userService.findById(userId);
+		String fullName = infoServerService.getFullName(user);
+		MessageEntity infoMessage = messageService.sendInfoMessage(
+				"Пользователь " + fullName + " был назначен администратором чата",
+				findById(chatId));
+		WebSocketDTO wsDto = webSocketService.sendMessage(infoMessage);
+		webSocketService.send("/topic/chat/" + chatId, wsDto);
+		return true;
 	}
 
 	public ChatEntity findById(int chatId) {
@@ -84,9 +106,9 @@ public class ChatService {
 	}
 
 	public UserEntity getSecondUserInSingleChat(ChatEntity chat, UserEntity user) {
-		for (UserEntity usr : chat.getUsers())
-			if (!usr.equals(user))
-				return usr;
+		for (UserChatEntity userChat : chat.getUserChats())
+			if (!userChat.getUser().equals(user))
+				return userChat.getUser();
 		return null;
 	}
 
@@ -96,19 +118,18 @@ public class ChatService {
 		if (chat == null || user == null) {
 			return false;
 		}
-		if (chat.getUsers().contains(user)) {
+		if (userChatService.findUserChat(user.getId(), chatId) == null) {
 			return false;
 		}
 		if (chat.getType() == ChatTypeEnum.SINGLE)
 			return false;
 
 		UserEntity curUser = userService.getCurrentUser();
-		if (!automated && !(chat.getUsers().contains(curUser)
+		if (!automated && (userChatService.findUserChat(curUser.getId(), chatId) == null
 				&& userChatService.findUserChat(curUser.getId(), chatId).isAdmin()))
 			return false;
 
-		chat.getUsers().add(user);
-		user.getChats().add(chat);
+		chat.getUserChats().add(new UserChatEntity(user, chat, false));
 		chatRepository.save(chat);
 		messageUserService.onNewUserInChat(user, chat);
 
@@ -127,18 +148,17 @@ public class ChatService {
 			return false;
 
 		ChatEntity chat = tmp.get();
-		if (!chat.getUsers().contains(user))
+		if (userChatService.findUserChat(user.getId(), chatId) == null)
 			return false;
 		if (chat.getType() == ChatTypeEnum.SINGLE)
 			return false;
 
 		UserEntity curUser = userService.getCurrentUser();
-		if (!automated && !(chat.getUsers().contains(curUser)
+		if (!automated && (userChatService.findUserChat(curUser.getId(), chatId) == null
 				&& userChatService.findUserChat(curUser.getId(), chatId).isAdmin()))
 			return false;
 
-		chat.getUsers().remove(user);
-		user.getChats().remove(chat);
+		chat.getUserChats().remove(new UserChatEntity(user, chat, false));
 		chat = chatRepository.save(chat);
 
 		String fullName = infoServerService.getFullName(user);
@@ -208,6 +228,7 @@ public class ChatService {
 	}
 
 	public void delete(ChatEntity chat) {
+		fileService.deleteChatDir(chat.getId());
 		chatRepository.delete(chat);
 	}
 
@@ -216,8 +237,52 @@ public class ChatService {
 		if (chat == null)
 			return 0;
 		UserEntity user = userService.getCurrentUser();
-		if (!user.getChats().contains(chat))
+		if (userChatService.findUserChat(user.getId(), chatId) == null)
 			return 0;
-		return user.getChats().size();
+		return chat.getUserChats().size();
+	}
+
+	public boolean leaveFromChat(Integer chatId) {
+		ChatEntity chat = findById(chatId);
+		if (chat.getType() != ChatTypeEnum.GROUP)
+			return false;
+
+		UserEntity user = userService.getCurrentUser();
+		if (userChatService.findUserChat(user.getId(), chatId) == null)
+			return false;
+
+		chat.getUserChats().remove(new UserChatEntity(user, chat, false));
+		chat = save(chat);
+		user = userService.save(user);
+
+		String fullName = infoServerService.getFullName(user);
+		MessageEntity infoMessage = messageService
+				.sendInfoMessage("Пользователь " + fullName + " вышел из чата", chat);
+		WebSocketDTO wsDto = webSocketService.sendMessage(infoMessage);
+		webSocketService.send("/topic/chat/" + chatId, wsDto);
+		return true;
+	}
+
+	public boolean deleteChat(Integer chatId, boolean automated) {
+		UserEntity curUser = userService.getCurrentUser();
+		if (curUser == null && !automated)
+			return false;
+
+		System.out.println("!");
+		ChatEntity chat = findById(chatId);
+		System.out.println("!");
+		if (chat == null)
+			return false;
+		System.out.println("!!");
+		UserChatEntity curUserChat = userChatService.findUserChat(curUser.getId(), chatId);
+		System.out.println("!!");
+		if (curUserChat == null)
+			return false;
+		if (!automated && !curUserChat.isAdmin())
+			return false;
+
+		System.out.println("!!!");
+		delete(chat);
+		return true;
 	}
 }

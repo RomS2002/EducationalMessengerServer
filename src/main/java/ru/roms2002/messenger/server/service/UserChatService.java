@@ -1,5 +1,8 @@
 package ru.roms2002.messenger.server.service;
 
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +21,11 @@ public class UserChatService {
 	private UserChatRepository userChatJoinRepository;
 
 	public UserChatEntity findUserChat(int userId, int chatId) {
-		return userChatJoinRepository.findById(new UserChatKey(chatId, userId)).get();
+		Optional<UserChatEntity> userChat = userChatJoinRepository
+				.findById(new UserChatKey(chatId, userId));
+		if (userChat.isEmpty())
+			return null;
+		return userChat.get();
 	}
 
 	public UserChatEntity save(UserChatEntity userChat) {
@@ -27,5 +34,9 @@ public class UserChatService {
 
 	public ChatEntity findSpecialChatByUser(UserEntity user) {
 		return userChatJoinRepository.findSpecialChatByUser(user);
+	}
+
+	public void deleteAll(List<UserChatEntity> userChats) {
+		userChatJoinRepository.deleteAll(userChats);
 	}
 }

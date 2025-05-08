@@ -1,8 +1,10 @@
 package ru.roms2002.messenger.server.service;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import ru.roms2002.messenger.server.entity.FileEntity;
 import ru.roms2002.messenger.server.entity.MessageEntity;
 import ru.roms2002.messenger.server.repository.FileRepository;
+import ru.roms2002.messenger.server.utils.StaticVariable;
 
 @Service
 public class FileService {
@@ -56,5 +59,15 @@ public class FileService {
 			return false;
 		}
 		return true;
+	}
+
+	public void deleteChatDir(int chatId) {
+		Path path = Paths.get(StaticVariable.FILE_STORAGE_PATH + "/" + chatId);
+		try {
+			Files.walk(path).map(Path::toFile).forEach(File::delete);
+			Files.deleteIfExists(path);
+		} catch (IOException e) {
+
+		}
 	}
 }
