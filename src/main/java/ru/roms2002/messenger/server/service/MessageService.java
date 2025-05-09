@@ -100,7 +100,7 @@ public class MessageService {
 		Pageable countMessages = PageRequest.of(page, count);
 		List<MessageEntity> messages = messageRepository.findByChatId(chatId, countMessages);
 		return messages.stream().map(msg -> {
-			String fullName = (msg.getType() != MessageTypeEnum.INFO)
+			String fullNameSender = (msg.getType() != MessageTypeEnum.INFO)
 					? infoServerService.getFullName(msg.getUser())
 					: null;
 			String filename = (msg.getFile() == null) ? null : msg.getFile().getFilename();
@@ -109,7 +109,7 @@ public class MessageService {
 			boolean seen = messageUserService.isMessageSeen(msg);
 
 			return new MessageDTO(msg.getId(), userId, msg.getChat().getId(), msg.getType(),
-					msg.getCreatedAt(), msg.getMessage(), filename, fullName, seen);
+					msg.getCreatedAt(), msg.getMessage(), filename, fullNameSender, null, seen);
 		}).toList();
 	}
 

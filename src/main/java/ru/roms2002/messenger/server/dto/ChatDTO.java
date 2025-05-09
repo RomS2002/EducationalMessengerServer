@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import ru.roms2002.messenger.server.utils.enums.ChatTypeEnum;
 import ru.roms2002.messenger.server.utils.enums.RoleEnum;
 
@@ -13,6 +14,7 @@ import ru.roms2002.messenger.server.utils.enums.RoleEnum;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class ChatDTO {
 
 	private int id;
@@ -32,4 +34,7 @@ public class ChatDTO {
 
 	@JsonProperty("not_read")
 	private int notRead;
+
+	@JsonProperty("user_id")
+	private int userId;
 }

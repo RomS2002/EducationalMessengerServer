@@ -37,6 +37,9 @@ public class MessagePayload implements Serializable {
 	@JsonProperty("sender_name")
 	private String senderName;
 
+	@JsonProperty("chat_name")
+	private String chatName;
+
 	private MessageTypeEnum type;
 
 	private String filename;

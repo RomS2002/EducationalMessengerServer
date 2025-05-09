@@ -23,6 +23,7 @@ public class AuthController {
 	@Autowired
 	private UserService userService;
 
+	@SuppressWarnings("incomplete-switch")
 	@PostMapping("/register")
 	public ResponseEntity<String> registerUser(@RequestBody AuthUserDTO userDto,
 			HttpServletResponse response) {
@@ -53,6 +54,7 @@ public class AuthController {
 		return new ResponseEntity<>("OK", HttpStatus.OK);
 	}
 
+	@SuppressWarnings("incomplete-switch")
 	@PostMapping
 	public ResponseEntity<String> login(@RequestBody AuthUserDTO userDto,
 			HttpServletResponse response) {

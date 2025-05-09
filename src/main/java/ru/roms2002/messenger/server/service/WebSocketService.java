@@ -37,8 +37,10 @@ public class WebSocketService {
 		payload.setId(message.getId());
 		payload.setChatId(message.getChat().getId());
 
-		if (message.getType() != MessageTypeEnum.INFO)
+		if (message.getType() != MessageTypeEnum.INFO) {
 			payload.setSenderId(message.getUser().getId());
+			payload.setSenderName(infoServerService.getFullName(message.getUser()));
+		}
 
 		payload.setCreatedAt(message.getCreatedAt());
 		payload.setType(message.getType());
@@ -51,13 +53,13 @@ public class WebSocketService {
 
 		ChatEntity chat = message.getChat();
 		if (chat.getType() != ChatTypeEnum.SINGLE) {
-			payload.setSenderName(chat.getName());
+			payload.setChatName(chat.getName());
 		} else {
 			UserEntity user = message.getUser();
 			if (user != null) {
 				UserDetailsDTO userDetails = infoServerService
 						.getUserDetailsByAdminpanelId(user.getAdminpanelId());
-				payload.setSenderName(userDetails.getFirstName() + " " + userDetails.getLastName());
+				payload.setChatName(userDetails.getFirstName() + " " + userDetails.getLastName());
 			}
 		}
 
@@ -73,9 +75,7 @@ public class WebSocketService {
 		WebSocketDTO wsDto = SerializationUtils.clone(payload);
 		MessagePayload messagePayload = (MessagePayload) wsDto.getPayload();
 		UserEntity user = userService.findById(userId);
-		UserDetailsDTO userDetails = infoServerService
-				.getUserDetailsByAdminpanelId(user.getAdminpanelId());
-		messagePayload.setSenderName(userDetails.getFirstName() + " " + userDetails.getLastName());
+		messagePayload.setChatName(infoServerService.getFullName(user));
 		webSocketService.send("/topic/user/" + messagePayload.getSenderId(), wsDto);
 	}
 

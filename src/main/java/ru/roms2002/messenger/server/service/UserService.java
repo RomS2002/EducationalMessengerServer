@@ -134,7 +134,7 @@ public class UserService {
 				.getUserDetailsByAdminpanelId(user.getAdminpanelId());
 		userDetails.setId(user.getId());
 		userDetails.setEmail(user.getEmail());
-		userDetails.setOnline(checkOnline(user));
+		userDetails.setStatus(checkOnline(user) ? "В сети" : "Не в сети");
 		return userDetails;
 	}
 
@@ -150,6 +150,7 @@ public class UserService {
 				UserEntity secondUser = chatService.getSecondUserInSingleChat(chat, user);
 				chatDTO.setName(infoServerService.getFullName(secondUser));
 				chatDTO.setUserType(secondUser.getRole());
+				chatDTO.setUserId(secondUser.getId());
 			} else {
 				chatDTO.setName(chat.getName());
 			}

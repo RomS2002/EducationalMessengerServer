@@ -113,12 +113,15 @@ public class ChatService {
 	}
 
 	public boolean addUserToChat(int userId, int chatId, boolean automated) {
-		ChatEntity chat = chatRepository.findById(chatId).get();
+		Optional<ChatEntity> tmp = chatRepository.findById(chatId);
+		if (tmp.isEmpty())
+			return false;
+		ChatEntity chat = tmp.get();
 		UserEntity user = userService.findById(userId);
-		if (chat == null || user == null) {
+		if (user == null) {
 			return false;
 		}
-		if (userChatService.findUserChat(user.getId(), chatId) == null) {
+		if (userChatService.findUserChat(user.getId(), chatId) != null) {
 			return false;
 		}
 		if (chat.getType() == ChatTypeEnum.SINGLE)
@@ -268,20 +271,15 @@ public class ChatService {
 		if (curUser == null && !automated)
 			return false;
 
-		System.out.println("!");
 		ChatEntity chat = findById(chatId);
-		System.out.println("!");
 		if (chat == null)
 			return false;
-		System.out.println("!!");
 		UserChatEntity curUserChat = userChatService.findUserChat(curUser.getId(), chatId);
-		System.out.println("!!");
 		if (curUserChat == null)
 			return false;
 		if (!automated && !curUserChat.isAdmin())
 			return false;
 
-		System.out.println("!!!");
 		delete(chat);
 		return true;
 	}

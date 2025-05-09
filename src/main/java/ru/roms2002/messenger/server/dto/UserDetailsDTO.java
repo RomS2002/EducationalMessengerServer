@@ -43,5 +43,5 @@ public class UserDetailsDTO {
 
 	private String faculty;
 
-	private boolean online;
+	private String status;
 }

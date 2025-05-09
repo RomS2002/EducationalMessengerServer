@@ -15,7 +15,6 @@ import ru.roms2002.messenger.server.entity.ChatEntity;
 import ru.roms2002.messenger.server.entity.UserEntity;
 import ru.roms2002.messenger.server.service.ChatService;
 import ru.roms2002.messenger.server.service.MessageService;
-import ru.roms2002.messenger.server.service.UserChatService;
 import ru.roms2002.messenger.server.service.UserService;
 import ru.roms2002.messenger.server.utils.enums.ChatTypeEnum;
 import ru.roms2002.messenger.server.utils.enums.RoleEnum;
@@ -29,9 +28,6 @@ public class NotificationController {
 
 	@Autowired
 	private ChatService chatService;
-
-	@Autowired
-	private UserChatService userChatService;
 
 	@Autowired
 	private MessageService messageService;

@@ -47,7 +47,6 @@ public class MessageUserService {
 	}
 
 	public void onNewUserInChat(UserEntity user, ChatEntity chat) {
-		System.out.println(chat.getMessages());
 		for (MessageEntity message : chat.getMessages()) {
 			if (message.getType() == MessageTypeEnum.INFO)
 				continue;

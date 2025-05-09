@@ -2,8 +2,6 @@ package ru.roms2002.messenger.server.controller;
 
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,8 +29,6 @@ import ru.roms2002.messenger.server.utils.StaticVariable;
 @RestController
 public class ApiController {
 
-	private final Logger log = LoggerFactory.getLogger(ApiController.class);
-
 	@Autowired
 	private UserService userService;
 
@@ -41,11 +37,6 @@ public class ApiController {
 
 	@Autowired
 	private MessageService messageService;
-
-	@GetMapping("/test")
-	public void test() {
-
-	}
 
 	@GetMapping("/chats")
 	public List<ChatDTO> getChats() {
