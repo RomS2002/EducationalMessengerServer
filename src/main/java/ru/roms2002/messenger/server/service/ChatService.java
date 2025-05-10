@@ -283,4 +283,18 @@ public class ChatService {
 		delete(chat);
 		return true;
 	}
+
+	public ChatEntity getSelfChat(UserEntity user) {
+		return chatRepository.findSelfChat(user.getId());
+	}
+
+	public ChatEntity createSelfChat(UserEntity user) {
+		ChatEntity chatEntity = new ChatEntity();
+		chatEntity.setType(ChatTypeEnum.SELF);
+		chatEntity.setName("Заметки");
+		chatEntity = chatRepository.save(chatEntity);
+		chatEntity.getUserChats().add(new UserChatEntity(user, chatEntity, false));
+		chatEntity = chatRepository.save(chatEntity);
+		return chatEntity;
+	}
 }

@@ -3,6 +3,7 @@ package ru.roms2002.messenger.server.config;
 import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.WebUtils;
@@ -12,9 +13,11 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import ru.roms2002.messenger.server.service.UserService;
 
 @Component
+@Slf4j
 public class JwtWebFilter extends OncePerRequestFilter {
 
 	@Autowired
@@ -33,9 +36,12 @@ public class JwtWebFilter extends OncePerRequestFilter {
 
 		if (jwtToken != null) {
 			userService.authenticateUser(jwtToken);
+			log.info("Выполнен вход под аккаунтом {}",
+					SecurityContextHolder.getContext().getAuthentication().getName());
 			filterChain.doFilter(request, response);
 			return;
 		}
+		log.debug("Выполнен вход под анонимным акканутом");
 		filterChain.doFilter(request, response);
 	}
 }

@@ -21,4 +21,7 @@ public interface ChatRepository extends JpaRepository<ChatEntity, Integer> {
 
 	@Query("from ChatEntity where type = ChatTypeEnum.DEPARTMENT and name like %:department%")
 	Optional<ChatEntity> findByDepartment(@Param("department") String department);
+
+	@Query("from ChatEntity where type = ChatTypeEnum.SELF and id in (select chat.id from UserChatEntity where user.id = :userId)")
+	ChatEntity findSelfChat(int userId);
 }

@@ -17,6 +17,7 @@ import ru.roms2002.messenger.server.entity.MessageEntity;
 import ru.roms2002.messenger.server.service.MessageService;
 import ru.roms2002.messenger.server.service.UserService;
 import ru.roms2002.messenger.server.service.WebSocketService;
+import ru.roms2002.messenger.server.utils.enums.ChatTypeEnum;
 
 @RestController
 public class WsController {
@@ -88,7 +89,8 @@ public class WsController {
 			MessageEntity messageEntity = messageService.saveMessageToUser(message, user.getName(),
 					userId);
 			wsDto = webSocketService.sendMessage(messageEntity);
-			webSocketService.sendToSender(wsDto, userId);
+			if (messageEntity.getChat().getType() != ChatTypeEnum.SELF)
+				webSocketService.sendToSender(wsDto, userId);
 			break;
 		case "readMessage":
 			Integer messageId = new ObjectMapper().convertValue(payload.getPayload(),

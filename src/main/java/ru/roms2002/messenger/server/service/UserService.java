@@ -85,6 +85,8 @@ public class UserService {
 	}
 
 	public ChatEntity getChatWith(UserEntity curUser, UserEntity user) {
+		if (user == null)
+			return null;
 		for (ChatEntity chat : curUser.getUserChats().stream().map(cu -> cu.getChat()).toList())
 			if (chat.getUserChats().contains(new UserChatEntity(user, chat, false))
 					&& chat.getType() == ChatTypeEnum.SINGLE)

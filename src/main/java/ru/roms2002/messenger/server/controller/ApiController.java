@@ -128,6 +128,29 @@ public class ApiController {
 		return chatService.getNumberOfUsersInChat(chatId);
 	}
 
+	@GetMapping("/my-id")
+	public Integer getMyId() {
+		UserEntity user = userService.getCurrentUser();
+		return user.getId();
+	}
+
+	@GetMapping("/get-singlechat-id/{userId}")
+	public Integer getSinglechatId(@PathVariable Integer userId) {
+		ChatEntity chat = userService.getChatWith(userService.getCurrentUser(),
+				userService.findById(userId));
+		if (chat == null)
+			return 0;
+		return chat.getId();
+	}
+
+	@GetMapping("/get-selfchat-id")
+	public Integer getSelfchatId() {
+		ChatEntity chat = chatService.getSelfChat(userService.getCurrentUser());
+		if (chat == null)
+			return 0;
+		return chat.getId();
+	}
+
 	@PostMapping("/chat/{chatId}/leave")
 	public ResponseEntity<Void> leaveFromChat(@PathVariable Integer chatId) {
 		if (!chatService.leaveFromChat(chatId))

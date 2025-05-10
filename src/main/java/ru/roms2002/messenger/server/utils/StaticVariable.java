@@ -8,7 +8,7 @@ public class StaticVariable {
 
 	public static int MAX_RANDOM_STRING_GEN = 25;
 
-	public static int MESSAGE_PAGE_SIZE = 7;
+	public static int MESSAGE_PAGE_SIZE = 20;
 
 	public static int SECONDS_SAVE_ONLINE_STATUS = 60;
 }

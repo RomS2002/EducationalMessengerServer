@@ -69,9 +69,18 @@ public class MessageService {
 		MessageEntity messageEntity = new MessageEntity();
 		UserEntity user2 = userService.findById(userId);
 
-		ChatEntity chat = chatService.findChatBetween(user, user2);
+		ChatEntity chat;
+		if (user.equals(user2)) {
+			chat = chatService.getSelfChat(user);
+		} else {
+			chat = chatService.findChatBetween(user, user2);
+		}
+
 		if (chat == null) {
-			chat = chatService.createChatWith(user, user2.getId());
+			if (user.equals(user2))
+				chat = chatService.createSelfChat(user);
+			else
+				chat = chatService.createChatWith(user, user2.getId());
 			if (chat == null)
 				return null;
 		}
@@ -132,11 +141,20 @@ public class MessageService {
 	public MessageEntity saveFileInSingleChat(Integer userId, MultipartFile file) {
 
 		UserEntity curUser = userService.getCurrentUser();
-		ChatEntity chat = userService.getChatWith(curUser, curUser);
-		if (chat == null)
-			chat = chatService.createChatWith(curUser, userId);
+		UserEntity user = userService.findById(userId);
+		ChatEntity chat;
+		if (user.equals(curUser)) {
+			chat = chatService.getSelfChat(user);
+		} else {
+			chat = chatService.findChatBetween(user, curUser);
+		}
 		if (chat == null) {
-			return null;
+			if (user.equals(curUser))
+				chat = chatService.createSelfChat(user);
+			else
+				chat = chatService.createChatWith(user, curUser.getId());
+			if (chat == null)
+				return null;
 		}
 		return saveFileInChat(chat.getId(), file);
 	}
