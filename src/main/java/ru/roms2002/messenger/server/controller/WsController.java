@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import jakarta.transaction.Transactional;
 import ru.roms2002.messenger.server.dto.MessageSendDTO;
 import ru.roms2002.messenger.server.dto.ws.EditMessagePayload;
 import ru.roms2002.messenger.server.dto.ws.WebSocketDTO;
@@ -77,6 +78,7 @@ public class WsController {
 	}
 
 	@MessageMapping("/user/{userId}")
+	@Transactional
 	public WebSocketDTO operationWithUser(@Payload WebSocketDTO payload, Principal user,
 			@DestinationVariable Integer userId) {
 		String operation = payload.getType();

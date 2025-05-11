@@ -116,9 +116,16 @@ public class MessageService {
 			int userId = (msg.getType() != MessageTypeEnum.INFO) ? msg.getUser().getId() : 0;
 
 			boolean seen = messageUserService.isMessageSeen(msg);
+			boolean seenByMe = false;
+
+			if (msg.getUser().getId() != user.getId()) {
+				seenByMe = messageUserService.findByUserIdAndMessageId(user.getId(), msg.getId())
+						.isSeen();
+			}
 
 			return new MessageDTO(msg.getId(), userId, msg.getChat().getId(), msg.getType(),
-					msg.getCreatedAt(), msg.getMessage(), filename, fullNameSender, null, seen);
+					msg.getCreatedAt(), msg.getMessage(), filename, fullNameSender, null, seen,
+					seenByMe);
 		}).toList();
 	}
 

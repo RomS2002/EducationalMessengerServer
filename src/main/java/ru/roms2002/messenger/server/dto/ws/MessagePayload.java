@@ -48,4 +48,7 @@ public class MessagePayload implements Serializable {
 	private Date createdAt;
 
 	private boolean seen;
+
+	@JsonProperty("seen_by_me")
+	private boolean seenByMe;
 }

@@ -40,4 +40,7 @@ public class MessageDTO {
 	private String chatName;
 
 	private boolean seen;
+
+	@JsonProperty("seen_by_me")
+	private boolean seenByMe;
 }

@@ -21,7 +21,9 @@ import org.springframework.web.multipart.MultipartFile;
 import ru.roms2002.messenger.server.dto.ws.WebSocketDTO;
 import ru.roms2002.messenger.server.entity.FileEntity;
 import ru.roms2002.messenger.server.entity.MessageEntity;
+import ru.roms2002.messenger.server.entity.UserEntity;
 import ru.roms2002.messenger.server.service.MessageService;
+import ru.roms2002.messenger.server.service.UserService;
 import ru.roms2002.messenger.server.service.WebSocketService;
 
 @RestController
@@ -33,6 +35,9 @@ public class MessageController {
 
 	@Autowired
 	private WebSocketService webSocketService;
+
+	@Autowired
+	private UserService userService;
 
 	@PostMapping("/chat/{chatId}/upload")
 	public ResponseEntity<Void> uploadFileToChat(@PathVariable Integer chatId,
@@ -58,7 +63,9 @@ public class MessageController {
 		}
 		WebSocketDTO wsDTO = webSocketService.sendMessage(message);
 		webSocketService.send("/topic/user/" + userId, wsDTO);
-		webSocketService.sendToSender(wsDTO, userId);
+		UserEntity curUser = userService.getCurrentUser();
+		if (curUser.getId() != userId)
+			webSocketService.sendToSender(wsDTO, userId);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
