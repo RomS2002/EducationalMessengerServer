@@ -34,11 +34,6 @@ public class InfoServerService {
 				.body(TokenStatus.class);
 	}
 
-	public Integer getIdByToken(String token) {
-		return restClient.post().uri(infoserverURI + "/getId").contentType(MediaType.TEXT_PLAIN)
-				.body(token).retrieve().body(Integer.class);
-	}
-
 	public UserDetailsDTO getUserDetailsByAdminpanelId(Integer id) {
 		return restClient.get().uri(infoserverURI + "/getUserDetails?id={id}", id).retrieve()
 				.body(UserDetailsDTO.class);
@@ -66,5 +61,10 @@ public class InfoServerService {
 				.body(List.class);
 		return mapper.convertValue(rawList, new TypeReference<List<String>>() {
 		});
+	}
+
+	public UserDetailsDTO getUserDetailsByToken(String regToken) {
+		return restClient.get().uri(infoserverURI + "/getUserDetails?token={regToken}", regToken)
+				.retrieve().body(UserDetailsDTO.class);
 	}
 }

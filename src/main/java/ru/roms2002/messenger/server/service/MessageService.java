@@ -1,15 +1,20 @@
 package ru.roms2002.messenger.server.service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import lombok.extern.slf4j.Slf4j;
 import ru.roms2002.messenger.server.dto.MessageDTO;
 import ru.roms2002.messenger.server.dto.MessageSendDTO;
 import ru.roms2002.messenger.server.entity.ChatEntity;
@@ -22,6 +27,7 @@ import ru.roms2002.messenger.server.repository.MessageRepository;
 import ru.roms2002.messenger.server.utils.enums.MessageTypeEnum;
 
 @Service
+@Slf4j
 public class MessageService {
 
 	@Autowired
@@ -59,7 +65,7 @@ public class MessageService {
 			messageEntity.setMessage(message.getMessage());
 
 		userService.updateOnline(user);
-		messageEntity = messageRepository.save(messageEntity);
+		messageEntity = save(messageEntity);
 		messageUserService.onCreateNewMessage(messageEntity);
 		return messageEntity;
 	}
@@ -92,7 +98,7 @@ public class MessageService {
 			messageEntity.setMessage(message.getMessage());
 
 		userService.updateOnline(user);
-		messageEntity = messageRepository.save(messageEntity);
+		messageEntity = save(messageEntity);
 		messageUserService.onCreateNewMessage(messageEntity);
 		return messageEntity;
 	}
@@ -108,17 +114,27 @@ public class MessageService {
 
 		Pageable countMessages = PageRequest.of(page, count);
 		List<MessageEntity> messages = messageRepository.findByChatId(chatId, countMessages);
+
+		Map<Integer, String> fullNames = new HashMap<>();
+
 		return messages.stream().map(msg -> {
-			String fullNameSender = (msg.getType() != MessageTypeEnum.INFO)
-					? infoServerService.getFullName(msg.getUser())
-					: null;
+			String fullNameSender;
+			if (msg.getType() == MessageTypeEnum.INFO)
+				fullNameSender = null;
+			else if (fullNames.containsKey(msg.getUser().getId()))
+				fullNameSender = fullNames.get(msg.getUser().getId());
+			else {
+				fullNameSender = infoServerService.getFullName(msg.getUser());
+				fullNames.put(msg.getUser().getId(), fullNameSender);
+			}
+
 			String filename = (msg.getFile() == null) ? null : msg.getFile().getFilename();
 			int userId = (msg.getType() != MessageTypeEnum.INFO) ? msg.getUser().getId() : 0;
 
 			boolean seen = messageUserService.isMessageSeen(msg);
 			boolean seenByMe = false;
 
-			if (msg.getUser().getId() != user.getId()) {
+			if (msg.getType() != MessageTypeEnum.INFO && msg.getUser().getId() != user.getId()) {
 				seenByMe = messageUserService.findByUserIdAndMessageId(user.getId(), msg.getId())
 						.isSeen();
 			}
@@ -193,18 +209,18 @@ public class MessageService {
 	}
 
 	public FileEntity getFile(int messageId) {
-		Optional<MessageEntity> message = messageRepository.findById(messageId);
-		if (message.isEmpty())
+		MessageEntity message = findById(messageId);
+		if (message == null)
 			return null;
-		FileEntity file = message.get().getFile();
+		FileEntity file = message.getFile();
 		return file;
 	}
 
 	public boolean checkRights(int messageId) {
-		Optional<MessageEntity> message = messageRepository.findById(messageId);
-		if (message.isEmpty())
+		MessageEntity message = findById(messageId);
+		if (message == null)
 			return false;
-		ChatEntity chat = message.get().getChat();
+		ChatEntity chat = message.getChat();
 		UserEntity user = userService.getCurrentUser();
 		return userChatService.findUserChat(chat.getId(), user.getId()) == null;
 	}
@@ -220,10 +236,9 @@ public class MessageService {
 	}
 
 	public boolean editMessage(int messageId, String message, UserEntity curUser) {
-		Optional<MessageEntity> msg = messageRepository.findById(messageId);
-		if (msg.isEmpty())
+		MessageEntity editedMessageEntity = findById(messageId);
+		if (editedMessageEntity == null)
 			return false;
-		MessageEntity editedMessageEntity = msg.get();
 		if (editedMessageEntity.getType() != MessageTypeEnum.TEXT)
 			return false;
 
@@ -232,15 +247,14 @@ public class MessageService {
 		}
 
 		editedMessageEntity.setMessage(message);
-		messageRepository.save(editedMessageEntity);
+		save(editedMessageEntity);
 		return true;
 	}
 
 	public boolean deleteMessage(Integer delMessageId, UserEntity curUser, boolean automated) {
-		Optional<MessageEntity> msg = messageRepository.findById(delMessageId);
-		if (msg.isEmpty())
+		MessageEntity messageEntity = findById(delMessageId);
+		if (messageEntity == null)
 			return false;
-		MessageEntity messageEntity = msg.get();
 
 		if (!automated) {
 			if (messageEntity.getType() == MessageTypeEnum.INFO)
@@ -259,7 +273,7 @@ public class MessageService {
 		if (messageEntity.getType() == MessageTypeEnum.FILE)
 			fileService.deleteFileFromMessage(messageEntity);
 
-		messageRepository.delete(messageEntity);
+		delete(messageEntity);
 		return true;
 	}
 
@@ -268,12 +282,28 @@ public class MessageService {
 		messageEntity.setType(MessageTypeEnum.INFO);
 		messageEntity.setMessage(message);
 		messageEntity.setChat(chat);
-		return messageRepository.save(messageEntity);
+		return save(messageEntity);
 	}
 
+	@CacheEvict("messages")
+	public void delete(MessageEntity message) {
+		messageRepository.delete(message);
+	}
+
+	@CacheEvict("messages")
 	public void deleteAllMessagesFromUserInChat(UserEntity user, ChatEntity chat) {
-		List<MessageEntity> messageList = chat.getMessages();
-		for (MessageEntity message : messageList)
-			deleteMessage(message.getId(), null, true);
+		messageRepository.deleteAllMessagesFromUserInChat(user.getId(), chat.getId());
+	}
+
+	@CachePut("messages")
+	public MessageEntity save(MessageEntity message) {
+		return messageRepository.save(message);
+	}
+
+	public MessageEntity findById(int chatId) {
+		Optional<MessageEntity> tmp = messageRepository.findById(chatId);
+		if (tmp.isEmpty())
+			return null;
+		return tmp.get();
 	}
 }

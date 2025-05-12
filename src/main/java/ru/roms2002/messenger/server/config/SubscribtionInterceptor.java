@@ -1,6 +1,7 @@
 package ru.roms2002.messenger.server.config;
 
 import java.security.Principal;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Component;
 import jakarta.transaction.Transactional;
 import ru.roms2002.messenger.server.entity.ChatEntity;
 import ru.roms2002.messenger.server.entity.UserEntity;
+import ru.roms2002.messenger.server.service.ChatService;
 import ru.roms2002.messenger.server.service.UserService;
 
 @Component
@@ -20,6 +22,9 @@ public class SubscribtionInterceptor implements ChannelInterceptor {
 
 	@Autowired
 	private UserService userService;
+
+	@Autowired
+	private ChatService chatService;
 
 	@Override
 	@Transactional
@@ -32,7 +37,8 @@ public class SubscribtionInterceptor implements ChannelInterceptor {
 			if (("/topic/user/" + user.getId()).equals(headerAccessor.getDestination()))
 				return message;
 
-			for (ChatEntity chat : user.getUserChats().stream().map(cu -> cu.getChat()).toList())
+			List<ChatEntity> userChats = chatService.findByUserId(user.getId());
+			for (ChatEntity chat : userChats)
 				if (("/topic/chat/" + chat.getId()).equals(headerAccessor.getDestination()))
 					return message;
 			return null;

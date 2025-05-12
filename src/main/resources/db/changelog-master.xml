@@ -9,4 +9,5 @@
     <include file="/db/changelog/createMessageTable.xml"/>
     <include file="/db/changelog/createFileBlobTable.xml"/>
     <include file="/db/changelog/createJoinTableMessageUserSeen.xml"/>
+    <include file="/db/changelog/createTaskTable.xml"/>
 </databaseChangeLog>

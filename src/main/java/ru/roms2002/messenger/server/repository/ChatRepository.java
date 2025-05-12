@@ -1,5 +1,6 @@
 package ru.roms2002.messenger.server.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -24,4 +25,7 @@ public interface ChatRepository extends JpaRepository<ChatEntity, Integer> {
 
 	@Query("from ChatEntity where type = ChatTypeEnum.SELF and id in (select chat.id from UserChatEntity where user.id = :userId)")
 	ChatEntity findSelfChat(int userId);
+
+	@Query("from ChatEntity where type <> ChatTypeEnum.SELF and id in (select chat.id from UserChatEntity where user.id = :userId)")
+	List<ChatEntity> findByUserId(int userId);
 }

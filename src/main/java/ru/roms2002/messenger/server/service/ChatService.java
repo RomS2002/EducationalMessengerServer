@@ -1,8 +1,12 @@
 package ru.roms2002.messenger.server.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import ru.roms2002.messenger.server.dto.ws.WebSocketDTO;
@@ -53,7 +57,7 @@ public class ChatService {
 		chatEntity.getUserChats().add(new UserChatEntity(curUser, chatEntity, false));
 		chatEntity.getUserChats().add(new UserChatEntity(user2, chatEntity, false));
 
-		chatEntity = chatRepository.save(chatEntity);
+		chatEntity = save(chatEntity);
 		return chatEntity;
 	}
 
@@ -61,7 +65,7 @@ public class ChatService {
 		ChatEntity chatEntity = new ChatEntity();
 		chatEntity.setType(ChatTypeEnum.GROUP);
 		chatEntity.setName(chatName);
-		chatEntity = chatRepository.save(chatEntity);
+		chatEntity = save(chatEntity);
 		return chatEntity;
 	}
 
@@ -92,10 +96,12 @@ public class ChatService {
 		return true;
 	}
 
+	@Cacheable("chats")
 	public ChatEntity findById(int chatId) {
-		if (chatRepository.findById(chatId).isEmpty())
+		Optional<ChatEntity> tmp = chatRepository.findById(chatId);
+		if (tmp.isEmpty())
 			return null;
-		return chatRepository.findById(chatId).get();
+		return tmp.get();
 	}
 
 	public ChatEntity findChatBetween(UserEntity user, UserEntity user2) {
@@ -133,7 +139,7 @@ public class ChatService {
 			return false;
 
 		chat.getUserChats().add(new UserChatEntity(user, chat, false));
-		chatRepository.save(chat);
+		chat = save(chat);
 		messageUserService.onNewUserInChat(user, chat);
 
 		String fullName = infoServerService.getFullName(user);
@@ -162,7 +168,7 @@ public class ChatService {
 			return false;
 
 		chat.getUserChats().remove(new UserChatEntity(user, chat, false));
-		chat = chatRepository.save(chat);
+		chat = save(chat);
 
 		String fullName = infoServerService.getFullName(user);
 		MessageEntity infoMessage = messageService
@@ -176,13 +182,14 @@ public class ChatService {
 		ChatEntity studgroupChat = new ChatEntity();
 		studgroupChat.setType(ChatTypeEnum.STUDGROUP);
 		studgroupChat.setName(groupName);
-		chatRepository.save(studgroupChat);
+		save(studgroupChat);
 	}
 
 	public ChatEntity findByStudgroupName(String groupName) {
 		return chatRepository.findByStudgroupName(groupName).get();
 	}
 
+	@Cacheable("chats")
 	public Optional<ChatEntity> findByDepartment(String department) {
 		return chatRepository.findByDepartment(department);
 	}
@@ -200,7 +207,7 @@ public class ChatService {
 		ChatEntity departmentChat = new ChatEntity();
 		departmentChat.setType(ChatTypeEnum.DEPARTMENT);
 		departmentChat.setName("Кафедра «" + department + "»");
-		chatRepository.save(departmentChat);
+		save(departmentChat);
 	}
 
 	public void addUserToDepartmentChat(UserEntity user, String department) {
@@ -226,10 +233,12 @@ public class ChatService {
 		addUserToChat(user.getId(), studgroupChat.getId(), true);
 	}
 
+	@CachePut("chats")
 	public ChatEntity save(ChatEntity chat) {
-		return chatRepository.save(chat);
+		return save(chat);
 	}
 
+	@CacheEvict("chats")
 	public void delete(ChatEntity chat) {
 		fileService.deleteChatDir(chat.getId());
 		chatRepository.delete(chat);
@@ -292,9 +301,13 @@ public class ChatService {
 		ChatEntity chatEntity = new ChatEntity();
 		chatEntity.setType(ChatTypeEnum.SELF);
 		chatEntity.setName("Заметки");
-		chatEntity = chatRepository.save(chatEntity);
+		chatEntity = save(chatEntity);
 		chatEntity.getUserChats().add(new UserChatEntity(user, chatEntity, false));
-		chatEntity = chatRepository.save(chatEntity);
+		chatEntity = save(chatEntity);
 		return chatEntity;
+	}
+
+	public List<ChatEntity> findByUserId(int userId) {
+		return chatRepository.findByUserId(userId);
 	}
 }

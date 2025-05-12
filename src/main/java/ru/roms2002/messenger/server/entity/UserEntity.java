@@ -63,7 +63,7 @@ public class UserEntity implements UserDetails, Serializable {
 	@JsonIgnore
 	private Set<MessageEntity> messages;
 
-	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
 	@JsonIgnore
 	private Set<MessageUserEntity> messageUsers;
 
@@ -76,9 +76,13 @@ public class UserEntity implements UserDetails, Serializable {
 	@Column(name = "last_action_time")
 	private Date lastActionTime;
 
-	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
 	@JsonIgnore
 	private List<UserChatEntity> userChats;
+
+	@OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
+	@JsonIgnore
+	private List<TaskEntity> tasks;
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {

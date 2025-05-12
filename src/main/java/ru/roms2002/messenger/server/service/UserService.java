@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,9 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -121,17 +125,17 @@ public class UserService {
 		Iterator<UserInListDTO> it = users.iterator();
 		while (it.hasNext()) {
 			UserInListDTO user = it.next();
-			Optional<UserEntity> userEntity = userRepository.findByAdminpanelId(user.getId());
-			if (userEntity.isEmpty())
+			UserEntity userEntity = findByAdminpanelId(user.getId());
+			if (userEntity == null)
 				it.remove();
 			else
-				user.setId(userEntity.get().getId());
+				user.setId(userEntity.getId());
 		}
 		return users;
 	}
 
 	public UserDetailsDTO getUserInfo(int id) {
-		UserEntity user = userRepository.findById(id).get();
+		UserEntity user = findById(id);
 		UserDetailsDTO userDetails = infoServerService
 				.getUserDetailsByAdminpanelId(user.getAdminpanelId());
 		userDetails.setId(user.getId());
@@ -144,13 +148,23 @@ public class UserService {
 		UserEntity user = getCurrentUser();
 
 		List<ChatDTO> resultList = new ArrayList<>();
-		for (ChatEntity chat : user.getUserChats().stream().map(uc -> uc.getChat()).toList()) {
+		List<ChatEntity> userChats = chatService.findByUserId(user.getId());
+
+		Map<Integer, String> fullNames = new HashMap<>();
+
+		for (ChatEntity chat : userChats) {
 			ChatDTO chatDTO = new ChatDTO();
 			chatDTO.setId(chat.getId());
 			chatDTO.setType(chat.getType());
 			if (chat.getType() == ChatTypeEnum.SINGLE) {
 				UserEntity secondUser = chatService.getSecondUserInSingleChat(chat, user);
-				chatDTO.setName(infoServerService.getFullName(secondUser));
+				if (fullNames.containsKey(secondUser.getId())) {
+					chat.setName(fullNames.get(secondUser.getId()));
+				} else {
+					String fullName = infoServerService.getFullName(secondUser);
+					fullNames.put(secondUser.getId(), fullName);
+					chatDTO.setName(fullName);
+				}
 				chatDTO.setUserType(secondUser.getRole());
 				chatDTO.setUserId(secondUser.getId());
 			} else {
@@ -230,10 +244,8 @@ public class UserService {
 
 			String encodedPassword = passwordEncoder.encode(userDto.getPassword());
 
-			int adminpanelID = infoServerService.getIdByToken(userDto.getRegToken());
-
 			UserDetailsDTO userDetails = infoServerService
-					.getUserDetailsByAdminpanelId(adminpanelID);
+					.getUserDetailsByToken(userDto.getRegToken());
 			RoleEnum role = (userDetails.getRole().equals("Студент")) ? RoleEnum.STUDENT
 					: RoleEnum.PROFESSOR;
 
@@ -244,9 +256,9 @@ public class UserService {
 			if (userDetails.getEnabledUntil().before(new Date()))
 				return RegisterUserStatus.EXPIRED;
 
-			UserEntity newUser = new UserEntity(adminpanelID, encodedPassword,
+			UserEntity newUser = new UserEntity(userDetails.getId(), encodedPassword,
 					userDto.getRegToken(), userDto.getEmail(), role);
-			newUser = userRepository.save(newUser);
+			newUser = save(newUser);
 
 			if (newUser.getRole() == RoleEnum.STUDENT)
 				chatService.addUserToStudgroup(newUser, userDetails.getGroupName());
@@ -286,14 +298,16 @@ public class UserService {
 		}
 	}
 
+	@Cacheable("users")
 	public UserEntity findByEmail(String email) {
 		List<UserEntity> tmp = userRepository.findByEmail(email);
 		if (!tmp.isEmpty()) {
-			return userRepository.findByEmail(email).get(0);
+			return tmp.get(0);
 		}
 		return null;
 	}
 
+	@Cacheable("users")
 	public UserEntity findById(int id) {
 		Optional<UserEntity> tmp = userRepository.findById(id);
 		if (tmp.isPresent()) {
@@ -338,6 +352,7 @@ public class UserService {
 		SecurityContextHolder.clearContext();
 	}
 
+	@Cacheable("users")
 	public UserEntity findByAdminpanelId(int id) {
 		Optional<UserEntity> tmp = userRepository.findByAdminpanelId(id);
 		if (tmp.isPresent()) {
@@ -346,6 +361,7 @@ public class UserService {
 		return null;
 	}
 
+	@CachePut("users")
 	public UserEntity save(UserEntity user) {
 		return userRepository.save(user);
 	}
@@ -376,7 +392,12 @@ public class UserService {
 		}
 	}
 
+	@CacheEvict("users")
 	public void deleteById(int userId) {
 		userRepository.deleteById(userId);
+	}
+
+	public List<UserEntity> getUsersInChat(int chatId) {
+		return userRepository.getUsersInChat(chatId);
 	}
 }

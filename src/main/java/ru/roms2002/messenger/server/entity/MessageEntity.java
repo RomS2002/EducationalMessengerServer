@@ -69,7 +69,7 @@ public class MessageEntity {
 	@CreationTimestamp
 	private Timestamp createdAt;
 
-	@OneToMany(mappedBy = "message", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "message", cascade = CascadeType.REMOVE)
 	@JsonIgnore
 	private Set<MessageUserEntity> messageUsers;
 }

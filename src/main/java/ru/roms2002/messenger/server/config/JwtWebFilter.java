@@ -26,6 +26,7 @@ public class JwtWebFilter extends OncePerRequestFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
 			FilterChain filterChain) throws ServletException, IOException {
+		log.info("Начало проверки аутентификации");
 		Cookie cookie = WebUtils.getCookie(request, "JWT");
 		String jwtToken = null;
 

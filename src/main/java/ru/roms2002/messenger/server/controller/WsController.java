@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import ru.roms2002.messenger.server.dto.MessageSendDTO;
 import ru.roms2002.messenger.server.dto.ws.EditMessagePayload;
 import ru.roms2002.messenger.server.dto.ws.WebSocketDTO;
@@ -21,6 +22,7 @@ import ru.roms2002.messenger.server.service.WebSocketService;
 import ru.roms2002.messenger.server.utils.enums.ChatTypeEnum;
 
 @RestController
+@Slf4j
 public class WsController {
 
 	@Autowired

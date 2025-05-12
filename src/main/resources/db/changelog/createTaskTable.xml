@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:pro="http://www.liquibase.org/xml/ns/pro"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd
+         http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-3.8.xsd">
+
+    <changeSet id="createTaskTable" author="TMN">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="task"/>
+            </not>
+        </preConditions>
+        
+        <createTable tableName="task">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            
+            <column name="user_id" type="int">
+            	<constraints nullable="false"/>
+            </column>
+            
+            <column name="text" type="MEDIUMTEXT"/>
+            
+            <column name="completed" type="boolean" defaultValue="false">
+            	<constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <createIndex tableName="task" indexName="ind_task_userid">
+        	<column name="user_id" />
+        </createIndex>
+        
+        <addForeignKeyConstraint
+                baseColumnNames="user_id"
+                baseTableName="task"
+                constraintName="fk_task_user"
+                referencedColumnNames="id"
+                referencedTableName="user"/>
+                
+        <rollback>
+            <dropTable tableName="task"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
