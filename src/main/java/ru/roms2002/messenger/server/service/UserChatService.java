@@ -39,4 +39,8 @@ public class UserChatService {
 	public void deleteAll(List<UserChatEntity> userChats) {
 		userChatJoinRepository.deleteAll(userChats);
 	}
+
+	public void delete(UserChatEntity userChat) {
+		userChatJoinRepository.delete(userChat);
+	}
 }

@@ -40,14 +40,14 @@ public class TaskController {
 	}
 
 	@PostMapping("/change-status")
-	public ResponseEntity<Void> changeStatus(@RequestBody TaskDTO taskDto) {
-		if (!taskService.changeTaskStatus(taskDto.getId(), taskDto.isCompleted()))
+	public ResponseEntity<Void> changeStatus(@RequestBody Integer taskId) {
+		if (!taskService.changeTaskStatus(taskId))
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
 	@DeleteMapping("/delete/{taskId}")
-	public ResponseEntity<Void> changeStatus(@PathVariable Integer taskId) {
+	public ResponseEntity<Void> deleteById(@PathVariable Integer taskId) {
 		if (!taskService.deleteById(taskId))
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		return new ResponseEntity<>(HttpStatus.OK);

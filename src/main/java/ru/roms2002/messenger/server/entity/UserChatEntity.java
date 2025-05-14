@@ -26,12 +26,12 @@ public class UserChatEntity implements Serializable {
 	@EmbeddedId
 	private UserChatKey id;
 
-	@ManyToOne(cascade = {})
+	@ManyToOne
 	@MapsId("chatId")
 	@JoinColumn(name = "chat_id")
 	private ChatEntity chat;
 
-	@ManyToOne(cascade = {})
+	@ManyToOne
 	@MapsId("userId")
 	@JoinColumn(name = "user_id")
 	private UserEntity user;
@@ -60,6 +60,7 @@ public class UserChatEntity implements Serializable {
 		if (getClass() != obj.getClass())
 			return false;
 		UserChatEntity other = (UserChatEntity) obj;
-		return Objects.equals(chat, other.chat) && Objects.equals(user, other.user);
+		return Objects.equals(id.getChatId(), other.id.getChatId())
+				&& Objects.equals(id.getUserId(), other.id.getUserId());
 	}
 }

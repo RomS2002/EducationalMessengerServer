@@ -150,58 +150,8 @@ public class UserService {
 		List<ChatDTO> resultList = new ArrayList<>();
 		List<ChatEntity> userChats = chatService.findByUserId(user.getId());
 
-		Map<Integer, String> fullNames = new HashMap<>();
-
 		for (ChatEntity chat : userChats) {
-			ChatDTO chatDTO = new ChatDTO();
-			chatDTO.setId(chat.getId());
-			chatDTO.setType(chat.getType());
-			if (chat.getType() == ChatTypeEnum.SINGLE) {
-				UserEntity secondUser = chatService.getSecondUserInSingleChat(chat, user);
-				if (fullNames.containsKey(secondUser.getId())) {
-					chat.setName(fullNames.get(secondUser.getId()));
-				} else {
-					String fullName = infoServerService.getFullName(secondUser);
-					fullNames.put(secondUser.getId(), fullName);
-					chatDTO.setName(fullName);
-				}
-				chatDTO.setUserType(secondUser.getRole());
-				chatDTO.setUserId(secondUser.getId());
-			} else {
-				chatDTO.setName(chat.getName());
-			}
-
-			MessageEntity message = messageService.getLastMessageInChat(chat.getId());
-			if (message == null)
-				chatDTO.setLastMessage(null);
-			else {
-				LastMessageDTO lastMessageDto = new LastMessageDTO();
-				lastMessageDto.setCreatedAt(message.getCreatedAt());
-				lastMessageDto.setType(message.getType());
-				if (message.getType() == MessageTypeEnum.TEXT) {
-					lastMessageDto.setText(message.getMessage());
-				} else {
-					lastMessageDto.setText("Файл: " + message.getFile().getFilename());
-				}
-
-				lastMessageDto.setSeen(messageUserService.isMessageSeen(message));
-				chatDTO.setLastMessage(lastMessageDto);
-			}
-
-			if (chatDTO.getLastMessage() != null) {
-				if (message.getUser().equals(user)) {
-					chatDTO.setMessageFrom("Вы:");
-				} else if (chatDTO.getType() == ChatTypeEnum.SINGLE) {
-					chatDTO.setMessageFrom("");
-				} else {
-					UserDetailsDTO userDetailsDTO = infoServerService
-							.getUserDetailsByAdminpanelId(message.getUser().getAdminpanelId());
-					chatDTO.setMessageFrom(userDetailsDTO.getFirstName() + ":");
-				}
-			}
-			chatDTO.setNotRead(
-					messageUserService.getNotReadByUserInChat(user.getId(), chat.getId()));
-			resultList.add(chatDTO);
+			resultList.add(createChatDTO(user, chat));
 		}
 
 		resultList.sort((chat1, chat2) -> {
@@ -226,6 +176,58 @@ public class UserService {
 
 		return resultList;
 
+	}
+
+	public ChatDTO createChatDTO(UserEntity user, ChatEntity chat) {
+		Map<Integer, String> fullNames = new HashMap<>();
+		ChatDTO chatDTO = new ChatDTO();
+		chatDTO.setId(chat.getId());
+		chatDTO.setType(chat.getType());
+		if (chat.getType() == ChatTypeEnum.SINGLE) {
+			UserEntity secondUser = chatService.getSecondUserInSingleChat(chat, user);
+			if (fullNames.containsKey(secondUser.getId())) {
+				chat.setName(fullNames.get(secondUser.getId()));
+			} else {
+				String fullName = infoServerService.getFullName(secondUser);
+				fullNames.put(secondUser.getId(), fullName);
+				chatDTO.setName(fullName);
+			}
+			chatDTO.setUserType(secondUser.getRole());
+			chatDTO.setUserId(secondUser.getId());
+		} else {
+			chatDTO.setName(chat.getName());
+		}
+
+		MessageEntity message = messageService.getLastMessageInChat(chat.getId());
+		if (message == null)
+			chatDTO.setLastMessage(null);
+		else {
+			LastMessageDTO lastMessageDto = new LastMessageDTO();
+			lastMessageDto.setCreatedAt(message.getCreatedAt());
+			lastMessageDto.setType(message.getType());
+			if (message.getType() == MessageTypeEnum.TEXT) {
+				lastMessageDto.setText(message.getMessage());
+			} else {
+				lastMessageDto.setText("Файл: " + message.getFile().getFilename());
+			}
+
+			lastMessageDto.setSeen(messageUserService.isMessageSeen(message));
+			chatDTO.setLastMessage(lastMessageDto);
+		}
+
+		if (chatDTO.getLastMessage() != null) {
+			if (message.getUser().equals(user)) {
+				chatDTO.setMessageFrom("Вы:");
+			} else if (chatDTO.getType() == ChatTypeEnum.SINGLE) {
+				chatDTO.setMessageFrom("");
+			} else {
+				UserDetailsDTO userDetailsDTO = infoServerService
+						.getUserDetailsByAdminpanelId(message.getUser().getAdminpanelId());
+				chatDTO.setMessageFrom(userDetailsDTO.getFirstName() + ":");
+			}
+		}
+		chatDTO.setNotRead(messageUserService.getNotReadByUserInChat(user.getId(), chat.getId()));
+		return chatDTO;
 	}
 
 	public RegisterUserStatus registerUser(AuthUserDTO userDto) {

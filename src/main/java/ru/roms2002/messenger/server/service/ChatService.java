@@ -9,6 +9,7 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import ru.roms2002.messenger.server.dto.ChatDTO;
 import ru.roms2002.messenger.server.dto.ws.WebSocketDTO;
 import ru.roms2002.messenger.server.entity.ChatEntity;
 import ru.roms2002.messenger.server.entity.MessageEntity;
@@ -135,7 +136,7 @@ public class ChatService {
 
 		UserEntity curUser = userService.getCurrentUser();
 		if (!automated && (userChatService.findUserChat(curUser.getId(), chatId) == null
-				&& userChatService.findUserChat(curUser.getId(), chatId).isAdmin()))
+				|| !userChatService.findUserChat(curUser.getId(), chatId).isAdmin()))
 			return false;
 
 		chat.getUserChats().add(new UserChatEntity(user, chat, false));
@@ -147,6 +148,10 @@ public class ChatService {
 				.sendInfoMessage("Пользователь " + fullName + " был добавлен в чат", chat);
 		WebSocketDTO wsDto = webSocketService.sendMessage(infoMessage);
 		webSocketService.send("/topic/chat/" + chatId, wsDto);
+
+		ChatDTO chatDto = userService.createChatDTO(user, chat);
+		WebSocketDTO wsDto2 = webSocketService.sendNewChatDTO(chatDto);
+		webSocketService.send("/topic/user/" + user.getId(), wsDto2);
 		return true;
 	}
 
@@ -157,24 +162,33 @@ public class ChatService {
 			return false;
 
 		ChatEntity chat = tmp.get();
-		if (userChatService.findUserChat(user.getId(), chatId) == null)
+		UserChatEntity userChat = userChatService.findUserChat(user.getId(), chatId);
+		if (userChat == null)
 			return false;
 		if (chat.getType() == ChatTypeEnum.SINGLE)
 			return false;
 
 		UserEntity curUser = userService.getCurrentUser();
 		if (!automated && (userChatService.findUserChat(curUser.getId(), chatId) == null
-				&& userChatService.findUserChat(curUser.getId(), chatId).isAdmin()))
+				|| !userChatService.findUserChat(curUser.getId(), chatId).isAdmin()))
 			return false;
 
-		chat.getUserChats().remove(new UserChatEntity(user, chat, false));
-		chat = save(chat);
+		chat.getUserChats().remove(userChat);
+		user.getUserChats().remove(userChat);
+		userChat.setChat(chat);
+		userChat.setUser(user);
+		userChatService.delete(userChat);
+
+		System.out.println(userChat.getUser().getId() + " " + userChat.getChat().getId());
 
 		String fullName = infoServerService.getFullName(user);
 		MessageEntity infoMessage = messageService
 				.sendInfoMessage("Пользователь " + fullName + " был удалён из чата", chat);
 		WebSocketDTO wsDto = webSocketService.sendMessage(infoMessage);
 		webSocketService.send("/topic/chat/" + chatId, wsDto);
+
+		WebSocketDTO wsDto2 = webSocketService.sendNewChatDTO(chatId);
+		webSocketService.send("/topic/user/" + user.getId(), wsDto2);
 		return true;
 	}
 
@@ -235,7 +249,7 @@ public class ChatService {
 
 	@CachePut("chats")
 	public ChatEntity save(ChatEntity chat) {
-		return save(chat);
+		return chatRepository.save(chat);
 	}
 
 	@CacheEvict("chats")

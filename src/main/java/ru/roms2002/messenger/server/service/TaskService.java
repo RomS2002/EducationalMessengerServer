@@ -44,13 +44,13 @@ public class TaskService {
 		return taskRepository.findByUserId(user.getId());
 	}
 
-	public boolean changeTaskStatus(int taskId, boolean completed) {
+	public boolean changeTaskStatus(int taskId) {
 		List<TaskEntity> userTasks = getUserTasks();
 		List<TaskEntity> tmp = userTasks.stream().filter(t -> t.getId() == taskId).toList();
 		if (tmp.size() == 0)
 			return false;
 		TaskEntity task = tmp.get(0);
-		task.setCompleted(completed);
+		task.setCompleted(!task.isCompleted());
 		try {
 			task = save(task);
 			return true;

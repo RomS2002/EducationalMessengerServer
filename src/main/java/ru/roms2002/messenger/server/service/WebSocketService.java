@@ -5,6 +5,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.SerializationUtils;
 
+import ru.roms2002.messenger.server.dto.ChatDTO;
 import ru.roms2002.messenger.server.dto.UserDetailsDTO;
 import ru.roms2002.messenger.server.dto.ws.EditMessagePayload;
 import ru.roms2002.messenger.server.dto.ws.MessagePayload;
@@ -97,6 +98,20 @@ public class WebSocketService {
 		WebSocketDTO response = new WebSocketDTO();
 		response.setType("wasDeleted");
 		response.setPayload(delMessageId);
+		return response;
+	}
+
+	public WebSocketDTO sendNewChatDTO(ChatDTO chatDto) {
+		WebSocketDTO response = new WebSocketDTO();
+		response.setType("newChat");
+		response.setPayload(chatDto);
+		return response;
+	}
+
+	public WebSocketDTO sendNewChatDTO(int chatId) {
+		WebSocketDTO response = new WebSocketDTO();
+		response.setType("removeChat");
+		response.setPayload(chatId);
 		return response;
 	}
 }
